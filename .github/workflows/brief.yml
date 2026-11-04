@@ -1,0 +1,35 @@
+name: Morning brief
+
+on:
+  schedule:
+    # 06:30 UTC = 06:30 London in winter, 07:30 in summer.
+    # GitHub can start scheduled runs late, so this leaves a buffer before 8am.
+    - cron: "30 6 * * *"
+  workflow_dispatch: # lets you run it manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install feedparser google-genai
+
+      - run: python make_brief.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Commit brief
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "brief-bot@users.noreply.github.com"
+          git add brief.txt
+          git commit -m "Brief $(date -u +%F)" || exit 0
+          git push
