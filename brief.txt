@@ -1,72 +1,94 @@
-@DATE 2026-11-04
+@DATE 2026-11-10
 # UK
-* Rail fares frozen for 2027
-Ministers confirmed regulated
-fares will not rise next year,
-saving season ticket holders
-around GBP 120 on average.
+* US forces evacuated from RAF
+* Mildenhall
+US military aircraft were moved
+from the base in Suffolk due to
+a possible Iranian threat if
+they remained.
 
-* Junior doctors accept new pay
-* deal
-The BMA backed a revised offer,
-ending the threat of further
-strikes over the winter.
+* Retail Trust reports shop worker
+* abuse rise
+More than half of UK shop
+workers now face weekly abuse or
+attacks from customers, up from
+33 percent two years ago.
 
-* Storm brings heavy rain to
-* north
-Flood warnings are in place
-across Cumbria and Yorkshire
-with more rain due tonight.
+* Edinburgh Academy abuse inquiry
+* findings published
+The Scottish Child Abuse Inquiry
+found that pupils suffered
+decades of dreadful abuse while
+the school ignored complaints to
+protect its reputation.
 
 # WORLD
-* EU agrees new climate target
-Member states signed off a 2040
-emissions goal after two days
-of late-night talks.
+* Kenyan doomsday sect leader
+* jailed for 200 years
+Paul Mackenzie was convicted
+over the deaths of 190 children
+and one adult after followers
+were ordered to starve
+themselves.
 
-* Talks resume over ceasefire
-* terms
-Negotiators meet again in Cairo
-today, with aid access the main
-sticking point.
+* Train collision in Egypt kills
+* at least seven
+The crash occurred in the al-
+Ayyat district of Giza province
+south of Cairo, leaving 125
+people injured.
 
-* Japan names new central bank
-* chief
-Markets reacted calmly to the
-appointment, seen as continuing
-gradual rate rises.
+* Pope Leo XIV criticises
+* Argentina austerity measures
+The pontiff delivered a stinging
+rebuke of President Javier
+Milei's economic policies during
+a visit to Buenos Aires.
 
 # TECH
-* Open-source model tops coding
-* chart
-A new freely available model
-matched paid rivals on a widely
-used programming benchmark.
+* Anthropic targets $1.4 trillion
+* IPO valuation
+The company confirmed its share
+price is expected to be between
+$70.00 and $78.00 as it prepares
+for one of the biggest market
+debuts.
 
-* Phone makers drop the charger
-* cable too
-Two major brands will ship new
-handsets with no cable at all
-from next spring.
+* Amazon announces Ring Rover Cam
+* mobile robot
+The new device from the Ring
+Robotics brand borrows design
+features from the Astro home
+robot for proactive security
+patrolling.
 
-* UK backs chip design start-ups
-A GBP 200m fund will support
-early-stage chip companies in
-Cambridge and Bristol.
+* Ring to release indoor drone
+* camera
+The Ring Drone Cam will ship on
+27 January 2027 priced at
+$249.99, according to founder
+Jamie Siminoff in New York City.
 
 # BUSINESS
-* FTSE 100 hits record high
-Miners and banks led the gains
-as investors bet on lower rates
-in the new year.
+* Nvidia and CEO Jensen Huang sued
+* in California
+Shareholders accused the chief
+executive and company of
+misleading them over his affair
+with an alleged Chinese spy.
 
-* Supermarket price war heats up
-Two big grocers cut prices on
-hundreds of staples ahead of
-Christmas.
+* US inflation rises by 0.4
+* percent in October
+Price increases cooled slightly
+and gas costs dipped during the
+month, coming in just above
+expectations according to the
+Bureau of Labor Statistics.
 
-* Pound steady against the
-* dollar
-Sterling held its ground after
-inflation came in slightly
-below forecasts.
+* Zilch secures GBP 165m debt
+* boost ahead of flotation
+The British consumer payments
+app has landed additional
+borrowing firepower as it
+prepares for a prospective
+London listing.
