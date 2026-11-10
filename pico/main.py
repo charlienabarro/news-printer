@@ -20,6 +20,13 @@ DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sun
 MONTHS = ["January", "February", "March", "April", "May", "June", "July",
           "August", "September", "October", "November", "December"]
 WIDTH = 32
+
+# Printer tuning. If lines still go missing, raise LINE_PAUSE_MS.
+# If text is broken or dotty, lower HEAT_DOTS; if it's too faint, raise HEAT_TIME.
+LINE_PAUSE_MS = 300
+HEAT_DOTS = 3        # (3+1)*8 = 32 dots heated at once
+HEAT_TIME = 140      # x10us
+HEAT_INTERVAL = 60   # x10us
 LAST_FILE = "last_printed.txt"
 
 led = Pin("LED", Pin.OUT)
@@ -112,6 +119,11 @@ def send(b):
 
 def reset():
     send(b"\x1b@")                       # initialise
+    time.sleep_ms(50)
+    # Heating settings: heat fewer dots at once so a 5V supply doesn't sag.
+    # ESC 7 n1 n2 n3 = max heating dots ((n1+1)*8), heat time, heat interval
+    send(b"\x1b7" + bytes([HEAT_DOTS, HEAT_TIME, HEAT_INTERVAL]))
+    time.sleep_ms(50)
 
 
 def align(n):
@@ -126,7 +138,7 @@ def size(double_w=False, double_h=False):
     send(b"\x1d!" + bytes([(0x10 if double_w else 0) | (0x01 if double_h else 0)]))
 
 
-def line(text="", pause_ms=70):
+def line(text="", pause_ms=LINE_PAUSE_MS):
     # The printer has a small buffer and no flow control, so go one line at a time.
     send(text.encode("ascii", "ignore") + b"\n")
     time.sleep_ms(pause_ms)
@@ -134,7 +146,7 @@ def line(text="", pause_ms=70):
 
 def feed(n):
     send(b"\x1bd" + bytes([n]))
-    time.sleep_ms(60 * n)
+    time.sleep_ms(LINE_PAUSE_MS * n)
 
 
 def print_brief(text, stale=False):
@@ -146,8 +158,8 @@ def print_brief(text, stale=False):
     align(1)
     bold(True)
     size(True, True)
-    line("MORNING", 150)
-    line("BRIEF", 150)
+    line("MORNING", LINE_PAUSE_MS * 3)
+    line("BRIEF", LINE_PAUSE_MS * 3)
     size()
     bold(False)
     if date:
@@ -163,7 +175,7 @@ def print_brief(text, stale=False):
             line()
             bold(True)
             size(False, True)
-            line(raw[2:], 140)
+            line(raw[2:], LINE_PAUSE_MS * 2)
             size()
             bold(False)
             line("=" * WIDTH)
