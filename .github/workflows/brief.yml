@@ -2,9 +2,13 @@ name: Morning brief
 
 on:
   schedule:
-    # 06:30 UTC = 06:30 London in winter, 07:30 in summer.
-    # GitHub can start scheduled runs late, so this leaves a buffer before 8am.
-    - cron: "30 6 * * *"
+    # GitHub often starts scheduled runs late (sometimes by hours) or skips them,
+    # especially on the hour/half hour. Several off-peak tries make sure a fresh
+    # brief is ready before 8am London time; each run just overwrites brief.txt.
+    - cron: "13 3 * * *"
+    - cron: "41 4 * * *"
+    - cron: "17 5 * * *"
+    - cron: "52 5 * * *"
   workflow_dispatch: # lets you run it manually from the Actions tab
 
 permissions:
