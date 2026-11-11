@@ -1,92 +1,93 @@
-@DATE 2026-11-10
+@DATE 2026-11-11
 # UK
-* Falklands oil project sparks UK-
-* Argentina dispute
-Argentina told an international
-tribunal that Britain's approval
-of the Sea Lion project in the
-North Falkland basin has
-deepened a sovereignty dispute.
+* Consultant doctors in England
+* pause strike
+Consultant doctors in England
+have suspended their walkouts
+scheduled for 25 and 26 November
+to open formal talks with the
+government.
 
-* Prince Harry delivers EU
-* parliament safety address
-Prince Harry delivered a keynote
-address on online child safety
-to the European parliament after
-the Duchess of Sussex pulled
-out.
+* UK diesel stays near GBP 2 a
+* litre
+UK diesel prices remain close to
+the record high of GBP 2 per
+litre despite a sharp fall in
+global oil prices.
 
-* Retail Trust reports rising shop
-* worker abuse
-More than half of UK shop
-workers face weekly abuse or
-attacks, according to research
-by the charity Retail Trust.
+* ITV cuts costs by GBP 30m
+ITV is reducing its content
+spending by GBP 25m as part of a
+GBP 30m cost-cutting plan amid
+falling advertising sales.
 
 # WORLD
-* Paul Mackenzie jailed for 200
-* years
-The Kenyan doomsday sect leader
-was sentenced to 200 years in
-prison for the murders of 190
-children and one adult.
-
 * Train collision in Egypt kills
 * seven
-Seven people were killed and at
-least 125 injured after two
-trains collided south of Cairo
-in the al-Ayyat district of Giza
-province.
+At least seven people died and
+125 were injured when two trains
+collided south of Cairo in al-
+Ayyat on Sunday.
 
-* Turkish steel plant explosion
-* kills 16
-A major fire broke out following
-an explosion at an iron and
-steel plant in Turkey, killing
-16 people.
+* Doomsday sect leader jailed for
+* 200 years
+Paul Mackenzie has been
+sentenced to 200 years in prison
+in Kenya for the murders of 190
+children and one adult.
+
+* Falkland Islands face oil
+* project block
+The attorney general for England
+and Wales warned of devastating
+consequences if Argentina blocks
+the Sea Lion offshore oilfield
+project.
 
 # TECH
-* Anthropic targets $1.4 trillion
-* IPO valuation
-Anthropic confirmed its IPO
-price is expected to be between
-$70.00 and $78.00 per share,
-valuing the company up to $1.4
-trillion.
+* Apple shuts down Support
+* Community forum
+Apple is placing its dedicated
+Support Community discussion
+forum into read-only mode ahead
+of closing it down next week.
 
-* Rockstar brings GTA VI to Xbox
-Rockstar Games is making Grand
-Theft Auto VI available on Xbox
-Cloud Gaming for Xbox Series X
-and S consoles next week.
+* Google AI agents map Maya
+* pyramid
+A Google software engineer used
+48 AI agents to analyse NASA
+Lidar data and discover an
+unmapped Maya pyramid in 72
+hours.
 
-* Adobe expands Creative Cloud and
-* Firefly
-Adobe announced new capabilities
-at its Max conference in Miami,
-Florida, to automatically remove
-objects and automate creative
-workflows.
+* Microsoft launches Auto SR on
+* Xbox Ally X
+Microsoft is rolling out its
+Automatic Super Resolution
+upscaling technology for the
+Xbox Ally X, Xbox Ally X20, and
+select Windows Copilot Plus PCs.
 
 # BUSINESS
-* US inflation rises 0.4% in
-* October
-The Bureau of Labor Statistics
-reported that US inflation rose
-0.4% from September to October
-as gas costs dipped.
+* Nvidia value drops by GBP 430bn
+* in two days
+Nvidia's market value plummeted
+by about GBP 322bn after CEO
+Jensen Huang admitted to having
+an affair with an alleged
+Chinese spy, prompting an FBI
+investigation.
 
-* Poundland owner releases GBP 10m
-* funding
-Poundland's owner has released
-GBP 10m to pay suppliers and
-save the discount retailer and
-its 10,500 staff.
+* Aldi cuts hundreds of UK head
+* office roles
+Aldi is cutting hundreds of jobs
+in its UK technology and head
+office teams as part of a global
+cost-trimming effort.
 
-* Oil prices fall as Trump claims
-* Iran end
-Brent crude dropped below $90
-after Donald Trump stated that
-the war on Iran is effectively
-over.
+* Anthropic seeks valuation of up
+* to GBP 1trn
+AI chatbot maker Anthropic is
+seeking a stock market valuation
+of up to GBP 1.4trn, equivalent
+to GBP 1trn.
