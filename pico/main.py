@@ -1,7 +1,9 @@
 """Morning brief printer for a Raspberry Pi Pico W.
 
-Joins WiFi, syncs the clock, and at PRINT_HOUR each day downloads brief.txt
-from GitHub and prints it on a 58mm ESC/POS thermal printer over UART.
+Joins WiFi and syncs the clock. At TRIGGER_HOUR:TRIGGER_MINUTE it asks GitHub
+to build a fresh brief (GitHub's own scheduler runs hours late, so the Pico
+starts the job itself). From PRINT_HOUR it downloads brief.txt and prints it
+on a 58mm ESC/POS thermal printer over UART.
 
 Press the BOOTSEL button at any time to reprint the latest brief.
 """
@@ -102,13 +104,38 @@ def fetch_brief():
     if not connect_wifi():
         return None
     try:
-        r = urequests.get(config.BRIEF_URL)
+        # The query string stops GitHub's CDN handing back a cached old copy.
+        r = urequests.get(config.BRIEF_URL + "?t=%d" % time.time())
         text = r.text if r.status_code == 200 else None
         r.close()
         return text
     except Exception as e:
         print("Fetch failed:", e)
         return None
+
+
+def trigger_brief():
+    """Start the GitHub Actions workflow that builds brief.txt. Returns True on success."""
+    if not connect_wifi():
+        return False
+    url = "https://api.github.com/repos/%s/actions/workflows/brief.yml/dispatches" % config.GITHUB_REPO
+    headers = {
+        "Authorization": "Bearer " + config.GITHUB_TOKEN,
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "news-printer-pico",
+    }
+    try:
+        r = urequests.post(url, headers=headers, json={"ref": "main"})
+        ok = r.status_code == 204
+        if not ok:
+            print("Trigger failed:", r.status_code, r.text[:200])
+        r.close()
+        if ok:
+            print("Triggered brief build")
+        return ok
+    except Exception as e:
+        print("Trigger failed:", e)
+        return False
 
 
 # ---------- printer (ESC/POS) ----------
@@ -208,21 +235,14 @@ def write_last(day):
         f.write(day)
 
 
-def try_print(force=False):
-    """Fetch and print. Returns True once something has been printed."""
-    now = london_now()
-    today = today_str(now)
-    text = fetch_brief()
-    if not text:
-        return False
-    fresh = text.startswith("@DATE " + today)
-    if fresh or force or now[3] >= config.GIVE_UP_HOUR:
-        led.on()
-        print_brief(text, stale=not fresh)
-        led.off()
-        return True
-    print("Brief not updated yet, will retry")
-    return False
+def is_fresh(text, today):
+    return bool(text) and text.startswith("@DATE " + today)
+
+
+def do_print(text, today):
+    led.on()
+    print_brief(text, stale=not is_fresh(text, today))
+    led.off()
 
 
 # ---------- main loop ----------
@@ -233,23 +253,40 @@ def main():
         time.sleep(30)
 
     last_check = 0
+    last_trigger = 0
     last_ntp = time.time()
     while True:
+        now = london_now()
+        today = today_str(now)
+
         # Manual reprint
         if rp2.bootsel_button():
             print("Button pressed, printing")
-            try_print(force=True)
+            text = fetch_brief()
+            if text:
+                do_print(text, today)
             time.sleep(2)
 
-        now = london_now()
-        today = today_str(now)
-        due = (now[3], now[4]) >= (config.PRINT_HOUR, config.PRINT_MINUTE)
+        hm = (now[3], now[4])
+        started = hm >= (config.TRIGGER_HOUR, config.TRIGGER_MINUTE)
+        due = hm >= (config.PRINT_HOUR, config.PRINT_MINUTE)
 
-        # Check every 10 minutes once it's due and today hasn't been printed
-        if due and read_last() != today and time.time() - last_check > 600:
+        # From trigger time until today's brief is printed, check every 5 minutes
+        if started and read_last() != today and time.time() - last_check > 300:
             last_check = time.time()
-            if try_print():
+            text = fetch_brief()
+            fresh = is_fresh(text, today)
+
+            # Not built yet: ask GitHub to build it (again every 20 minutes if needed)
+            if not fresh and time.time() - last_trigger > 1200:
+                if trigger_brief():
+                    last_trigger = time.time()
+
+            if due and text and (fresh or now[3] >= config.GIVE_UP_HOUR):
+                do_print(text, today)
                 write_last(today)
+            elif due:
+                print("Brief not updated yet, will retry")
 
         # Resync the clock once a day so it doesn't drift
         if time.time() - last_ntp > 86400:
