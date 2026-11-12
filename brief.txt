@@ -1,171 +1,107 @@
 @DATE 2026-11-12
 # UK
-* Economy grows by 0.7% in third
-* quarter
-The Office for National
-Statistics reported that the UK
-economy expanded by 0.7% in the
-third quarter, marking its
-fastest growth in two and a half
-years due to increased AI
-services activity. Meanwhile,
-the prime minister Andy Burnham
-committed the UK to meeting its
-2050 net-zero target.
+* Metro Bank for sale for GBP 420m
+Metro Bank has put itself up for
+sale three years after its near-
+collapse, a move that could hand
+a GBP 420m windfall to its
+Colombian billionaire investor,
+Jaime Gilinski Bacal.
 
-* UForce reaches GBP 4.5bn
-* valuation after fundraising
+* Burberry returns to profit with
+* sales
+Chief executive Joshua Schulman
+announced that Burberry has
+returned to profit following a
+back-to-basics strategy that
+drove strong summer sales of
+coats, jackets and handbags in
+China and the US.
+
+* UForce hits GBP 4.5bn value
+* after funding
 London-based naval drone maker
-UForce has hit a GBP 4.5bn
+UForce has reached a GBP 4.5bn
 valuation after raising more
-than GBP 500m, which included a
-GBP 113m investment from
-Britain's national wealth fund.
-The company was founded by
-Ukrainians and its equipment has
-been used heavily in the war
-with Russia.
-
-* NHS England deletes claim over
-* Palantir tools
-NHS England removed a website
-claim that 137 hospital trusts
-were benefiting from Palantir's
-AI health data system after a
-Guardian investigation revealed
-29 trusts were not or hardly
-using the technology. In
-separate crime news, far-right
-activist Daniel Thomas, aged 37,
-admitted criminal damage after
-slashing an inflatable dinghy
-with a knife in the Channel.
+than GBP 500m, including a GBP
+113m investment from Britain's
+national wealth fund.
 
 # WORLD
-* Train collision in Egypt kills
-* seven people
-Seven people were killed and at
-least 125 injured when two
-trains collided south of Cairo
-in the al-Ayyat district of Giza
-province, prompting the
-president to order a prompt
-investigation. Formula One world
-champion Lewis Hamilton also
-visited Egypt to tour the Rafah
-border crossing and Gaza aid
-facilities operated by the
-Egyptian Red Crescent.
+* Train crash in Egypt kills seven
+At least seven people were
+killed and 125 injured when two
+trains collided in the al-Ayyat
+district of Giza province, about
+50km from Cairo.
 
 * Kenyan sect leader jailed for
-* 200 years
-Paul Mackenzie, the leader of a
-Kenyan doomsday sect, was
+* murders
+Paul Mackenzie, leader of a
+Kenyan doomsday sect, has been
 sentenced to 200 years in prison
 for the murders of 190 children
-and one adult after followers
-were ordered to starve
-themselves. In South Africa, the
-African National Congress fell
-to under a third of the vote
-nationally with 80% of ballots
-counted in local elections.
+and one adult.
 
-* Skulls returned to Brazil after
-* eugenics studies
-Two skulls, believed to have
-belonged to Africans or Afro-
-Brazilians including a man who
-took part in Brazil's greatest
-slave revolt, were returned to
-the country after being used in
-racist eugenics studies at
-Harvard University. In
-Argentina, 74-year-old former
-Red Brigades member Leonardo
-Bertulazzi escaped from house
-arrest while awaiting
-extradition to Italy.
+* Red Brigades escape from house
+* arrest
+Leonardo Bertulazzi, a 74-year-
+old former member of Italy's
+radical Marxist group the Red
+Brigades, has escaped from house
+arrest in Argentina while
+awaiting extradition to Italy.
 
 # TECH
-* Nvidia board prepares to dismiss
-* Jensen Huang
-The board of Nvidia is preparing
-to oust CEO Jensen Huang
-following reports of two alleged
-extramarital affairs, including
-one with a woman alleged to be a
-Chinese spy. The news sent
-Nvidia shares plunging in
-extended trading and dragged
-Asian markets lower.
+* Nvidia board weighs CEO future
+Nvidia's board is reportedly
+preparing to oust chief
+executive Jensen Huang following
+reports regarding extramarital
+affairs.
 
-* EU proposes Digital Fairness Act
-* crackdown
-The European Union Commission
+* EU proposes digital fairness
+* rules
+The European Commission has
 published the Digital Fairness
-Act to target gaming, social
-media and e-commerce platforms,
-aiming to tackle loot boxes,
-influencers and features that
-exploit consumers. Meanwhile,
-Toyota announced its Scion brand
-is returning as an experimental
-mobility incubator producing
-American-made kei trucks in
-Indiana.
+Act to crack down on loot boxes,
+influencers and addictive
+features across gaming, social
+media and e-commerce platforms.
 
-* Critical RCE vulnerability found
-* in Apache HTTP Server
-Security researchers highlighted
-a critical remote code execution
-vulnerability, designated
-CVE-2026-119618, affecting the
-Apache HTTP Server. In other
-developments, Ring confirmed its
-upcoming security camera drone
-will rely entirely on an AI
-Pilot system with no manual
-control options when it launches
-in January.
+* Ring confirms autonomous camera
+* drone
+Ring has confirmed its upcoming
+security camera drone will rely
+entirely on an AI Pilot system
+to navigate autonomously, with
+no manual control option
+available when it launches in
+January.
 
 # BUSINESS
-* Burberry returns to profit
-* following sales surge
-Burberry returned to profit over
-the summer as a back-to-basics
-strategy driven by chief
-executive Joshua Schulman
-boosted sales of coats, jackets
-and handbags across China and
-the US. This comes as the UK
-economy recorded 0.7% growth in
-the third quarter.
+* UK economy grows 0.7% in Q3
+The UK economy grew by 0.7% in
+the third quarter of the year,
+driven by a boost from
+artificial intelligence
+investment and defying economic
+slowdown expectations.
 
-* Poundland owner releases GBP 10m
-* before rescue talks
-Poundland's owner released GBP
-10m to pay suppliers ahead of
-high court talks to seek a two-
-week extension of legal
-protection from creditors, while
-MPs accused management of
-extracting millions while the
+* Poundland faces crisis and
+* rescue talks
+Crisis-hit Poundland has secured
+an extended deadline for a
+potential rescue after MPs
+accused its owner of extracting
+millions while the budget
 retailer was on a knife-edge.
-The crisis-hit firm's directors
-met to decide the company's
-future alongside considering
-options for footwear chain Dune.
 
-* Fintech Zilch secures GBP 165m
-* debt boost
-Consumer payments app Zilch
-secured GBP 165m in borrowing
-firepower as the British fintech
-unicorn prepares for a
-prospective London flotation.
-Meanwhile, the UK water industry
-bonus ban is set to be tightened
-by Ofwat over concerns that
-large payments to bosses risk
-damaging public trust.
+* Water industry bonus ban
+* tightened
+Regulator Ofwat is hastening a
+review to tighten the water
+company bonus ban amid concerns
+that firms are undermining rules
+to make large payments to
+bosses.
