@@ -1,122 +1,171 @@
-@DATE 2026-11-11
+@DATE 2026-11-12
 # UK
-* Poundland owner extracted
-* millions before rescue
-MPs accused the owner of
-Poundland of extracting millions
-of pounds when the budget
-retailer was on a knife-edge.
-Management will seek a two-week
-extension of legal protection
-from creditors in the high
-court.
+* Economy grows by 0.7% in third
+* quarter
+The Office for National
+Statistics reported that the UK
+economy expanded by 0.7% in the
+third quarter, marking its
+fastest growth in two and a half
+years due to increased AI
+services activity. Meanwhile,
+the prime minister Andy Burnham
+committed the UK to meeting its
+2050 net-zero target.
 
-* Soldier charged with rape in
-* Cyprus
-L/Cpl Nicholas Horne from the
-4th Battalion of the Royal
-Regiment of Scotland was charged
-with one count of the alleged
-rape of a UK army servicewoman
-in Cyprus on 23 October.
+* UForce reaches GBP 4.5bn
+* valuation after fundraising
+London-based naval drone maker
+UForce has hit a GBP 4.5bn
+valuation after raising more
+than GBP 500m, which included a
+GBP 113m investment from
+Britain's national wealth fund.
+The company was founded by
+Ukrainians and its equipment has
+been used heavily in the war
+with Russia.
 
-* Burnham raised safety concerns
-* over warehouse
-Andy Burnham raised safety
-concerns about dozens of lorries
-leaving a monster warehouse in
-Astley near a primary school
-because there was no safe
-crossing for children, a public
-inquiry heard.
+* NHS England deletes claim over
+* Palantir tools
+NHS England removed a website
+claim that 137 hospital trusts
+were benefiting from Palantir's
+AI health data system after a
+Guardian investigation revealed
+29 trusts were not or hardly
+using the technology. In
+separate crime news, far-right
+activist Daniel Thomas, aged 37,
+admitted criminal damage after
+slashing an inflatable dinghy
+with a knife in the Channel.
 
 # WORLD
-* Kenyan doomsday sect leader
-* jailed 200 years
-Paul Mackenzie was sentenced to
-200 years in prison for the
-murders of 190 children and one
-adult after followers were
-ordered to starve themselves and
-their families.
-
-* Seven killed in Egyptian train
-* collision
+* Train collision in Egypt kills
+* seven people
 Seven people were killed and at
 least 125 injured when two
-trains collided on Sunday in the
-al-Ayyat district of Giza
-province, about 50km from Cairo,
-prompting an investigation
-ordered by the president.
+trains collided south of Cairo
+in the al-Ayyat district of Giza
+province, prompting the
+president to order a prompt
+investigation. Formula One world
+champion Lewis Hamilton also
+visited Egypt to tour the Rafah
+border crossing and Gaza aid
+facilities operated by the
+Egyptian Red Crescent.
 
-* Ex-Red Brigades member escapes
-* house arrest
-Leonardo Bertulazzi, a 74-year-
-old former member of Italy's
-radical Marxist group the Red
-Brigades who was awaiting
-extradition to Italy, escaped
-house arrest in Argentina on
-Wednesday.
+* Kenyan sect leader jailed for
+* 200 years
+Paul Mackenzie, the leader of a
+Kenyan doomsday sect, was
+sentenced to 200 years in prison
+for the murders of 190 children
+and one adult after followers
+were ordered to starve
+themselves. In South Africa, the
+African National Congress fell
+to under a third of the vote
+nationally with 80% of ballots
+counted in local elections.
+
+* Skulls returned to Brazil after
+* eugenics studies
+Two skulls, believed to have
+belonged to Africans or Afro-
+Brazilians including a man who
+took part in Brazil's greatest
+slave revolt, were returned to
+the country after being used in
+racist eugenics studies at
+Harvard University. In
+Argentina, 74-year-old former
+Red Brigades member Leonardo
+Bertulazzi escaped from house
+arrest while awaiting
+extradition to Italy.
 
 # TECH
-* EU proposes sweeping Digital
-* Fairness Act
-The European Union published the
-Digital Fairness Act on
-Wednesday, proposing fresh rules
-to crack down on loot boxes,
-influencers and addictive
-features on gaming, social media
-and e-commerce platforms.
+* Nvidia board prepares to dismiss
+* Jensen Huang
+The board of Nvidia is preparing
+to oust CEO Jensen Huang
+following reports of two alleged
+extramarital affairs, including
+one with a woman alleged to be a
+Chinese spy. The news sent
+Nvidia shares plunging in
+extended trading and dragged
+Asian markets lower.
 
-* Google unveils Tabletop AI
-* collaboration tool
-Google introduced Tabletop, an
-experimental AI tool that
-generates customized
-collaborative hubs to help users
-coordinate with family and
-friends using built-in AI
-features.
+* EU proposes Digital Fairness Act
+* crackdown
+The European Union Commission
+published the Digital Fairness
+Act to target gaming, social
+media and e-commerce platforms,
+aiming to tackle loot boxes,
+influencers and features that
+exploit consumers. Meanwhile,
+Toyota announced its Scion brand
+is returning as an experimental
+mobility incubator producing
+American-made kei trucks in
+Indiana.
 
-* Google DeepMind reveals
-* AlphaGenome 2
-Researchers at Google DeepMind
-unveiled AlphaGenome 2, a new AI
-model designed to unravel how
-changes in DNA affect different
-cells to help scientists
-understand the causes of
-disease.
+* Critical RCE vulnerability found
+* in Apache HTTP Server
+Security researchers highlighted
+a critical remote code execution
+vulnerability, designated
+CVE-2026-119618, affecting the
+Apache HTTP Server. In other
+developments, Ring confirmed its
+upcoming security camera drone
+will rely entirely on an AI
+Pilot system with no manual
+control options when it launches
+in January.
 
 # BUSINESS
-* Nvidia value plummets and CEO
-* investigated
-Nvidia's market value plummeted
-by about $430bn (GBP 322bn) in
-two days after CEO Jensen Huang
-admitted to an affair with an
-alleged Chinese spy, prompting
-the company to hire a US law
-firm and an FBI investigation.
+* Burberry returns to profit
+* following sales surge
+Burberry returned to profit over
+the summer as a back-to-basics
+strategy driven by chief
+executive Joshua Schulman
+boosted sales of coats, jackets
+and handbags across China and
+the US. This comes as the UK
+economy recorded 0.7% growth in
+the third quarter.
 
-* Aldi cuts hundreds of UK head
-* office roles
-Aldi's UK business is cutting
-hundreds of head office roles
-and consulting with its
-technology team as part of a
-global effort to trim costs at
-the budget grocer.
+* Poundland owner releases GBP 10m
+* before rescue talks
+Poundland's owner released GBP
+10m to pay suppliers ahead of
+high court talks to seek a two-
+week extension of legal
+protection from creditors, while
+MPs accused management of
+extracting millions while the
+retailer was on a knife-edge.
+The crisis-hit firm's directors
+met to decide the company's
+future alongside considering
+options for footwear chain Dune.
 
-* Nats boss reflects on air
-* traffic chaos
-The boss of Nats stated he was
-the most disliked person in the
-UK after air traffic control
-systems failed twice in
-September, disrupting flights
-for hundreds of thousands of
-passengers.
+* Fintech Zilch secures GBP 165m
+* debt boost
+Consumer payments app Zilch
+secured GBP 165m in borrowing
+firepower as the British fintech
+unicorn prepares for a
+prospective London flotation.
+Meanwhile, the UK water industry
+bonus ban is set to be tightened
+by Ofwat over concerns that
+large payments to bosses risk
+damaging public trust.
