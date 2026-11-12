@@ -1,100 +1,95 @@
 @DATE 2026-11-12
 # UK
-* Two Iranian agents convicted of
-* spying
+* Andy Burnham suggests win-win EU
+* Brexit deal
+The prime minister said a reset
+could create a deal more like
+what people thought they voted
+for in 2016.
+
+* Kayla Smith admits murdering
+* Chloe Watson Dransfield
+The 18-year-old woman stabbed
+the 16-year-old to death in
+Leeds during a planned fight
+over a young man.
+
+* Two men convicted of helping
+* Iranian intelligence
 Mostafa Sepahvand and Farhad
-Javadi Manesh were found guilty
-of assisting Iranian
-intelligence by conducting
-surveillance to target UK-based
-journalists.
-
-* Young people face benefit cuts
-Former health secretary Alan
-Milburn's plans propose removing
-personal independence payments
-for under-25s, replacing them
-with local funds for short-term
-expenses.
-
-* UK car industry seeks EV delay
-Vehicle manufacturers are
-preparing to press the EU for a
-two-year delay to post-Brexit
-rules of origin tariffs on
-electric cars starting on 1
-January.
+Javadi Manesh carried out
+surveillance in Britain to help
+eliminate UK-based journalists.
 
 # WORLD
-* Train collision kills seven in
-* Egypt
-At least seven people died and
-125 were injured after two
-trains collided and one derailed
-in al-Ayyat, about 50km south of
-Cairo.
+* Paul Mackenzie sentenced to 200
+* years in prison
+The Kenyan doomsday sect leader
+was convicted over the murders
+of 190 children and one adult
+after followers starved
+themselves.
 
-* Kenyan doomsday sect leader
-* jailed
-Paul Mackenzie was sentenced to
-200 years in prison for the
-murders of 190 children and one
-adult following enforced
-starvation.
+* Train collision in Egypt kills
+* seven people
+The crash occurred in al-Ayyat
+district, about 50km from Cairo,
+leaving at least 125 injured and
+prompting a government
+investigation.
 
-* Enslaved people's skulls
-* returned
-Two skulls likely belonging to
-Afro-Brazilians, used in
-eugenics studies at Harvard
-University, were repatriated to
-Brazil by diplomats.
+* Simbarashe Kundizeza cleared in
+* AI prize investigation
+The Zimbabwean author was
+cleared by the Caine prize after
+a month-long inquiry concluded
+his story The Blue Fighter was
+human-written.
 
 # TECH
 * Jensen Huang resigns as Nvidia
-* CEO
-Jensen Huang has stepped down
-following a scandal involving
-affairs, including one with an
-alleged Chinese spy, with CFO
-Colette Kress taking over as
-interim CEO.
+* CEO after affairs scandal
+Huang stepped down following
+reports of two affairs,
+including one with an alleged
+Chinese spy and another with a
+direct report.
 
-* Xbox marks 25th anniversary
-Microsoft is attempting to
-reinvent the game console market
-25 years after the original Xbox
-launched on 15 November 2001 to
-compete with Sony and Nintendo.
+* Microsoft Outlook suffers global
+* outage
+Users around the world lost
+access to email via web and apps
+as Microsoft 365 Status
+confirmed infrastructure issues.
 
-* AI chatbots recommend fake sites
-A study by Podqi found that
-shoppers using ChatGPT, Gemini,
-and Perplexity are being
-directed to imposters and risky
-websites.
+* Google researcher falsely claims
+* AI agent discovered Maya site
+Pietro Miotti used AI agents to
+claim an unmapped site in
+Mexico, which had actually been
+published in an academic journal
+last year.
 
 # BUSINESS
-* Nvidia value drops as Huang
-* resigns
-Nvidia's market value slumped by
-$888bn this week as chipmaker
-CEO Jensen Huang resigned and
-CFO Colette Kress stepped in as
-interim CEO.
+* UK economy grows by 0.7 percent
+* in third quarter
+Gross domestic product expanded
+at its fastest pace in more than
+two years, bolstered by AI
+investment and high oil prices.
 
 * Metro Bank puts itself up for
 * sale
-Metro Bank is up for sale three
-years after its near-collapse, a
-move that could grant Colombian
-billionaire investor Jaime
-Gilinski Bacal a GBP 420m
-windfall.
+The move comes three years after
+its near-collapse and could give
+Colombian billionaire investor
+Jaime Gilinski Bacal a 420
+million pound windfall.
 
-* UK economy grows by 0.7%
-The UK economy grew by 0.7% in
-the third quarter of the year,
-boosted by artificial
-intelligence investment despite
-high oil prices.
+* Burberry returns to profit
+* following sales surge
+Chief executive Joshua Schulman
+credited a back-to-basics
+strategy and strong sales of
+coats, jackets and handbags in
+China and the US.
