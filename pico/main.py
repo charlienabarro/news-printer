@@ -122,6 +122,7 @@ def trigger_brief():
     headers = {
         "Authorization": "Bearer " + config.GITHUB_TOKEN,
         "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json",
         "User-Agent": "news-printer-pico",
     }
     try:
