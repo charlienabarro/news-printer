@@ -1,131 +1,100 @@
 @DATE 2026-11-12
 # UK
-* Metro Bank up for sale with GBP
-* 420m potential windfall
-Metro Bank is putting itself up
-for sale three years after its
-near-collapse, in a move that
-could hand a GBP 420m windfall
-to its Colombian billionaire
-investor, Jaime Gilinski Bacal.
-Shares rose 7% following the
-announcement.
+* Two Iranian agents convicted of
+* spying
+Mostafa Sepahvand and Farhad
+Javadi Manesh were found guilty
+of assisting Iranian
+intelligence by conducting
+surveillance to target UK-based
+journalists.
 
-* Burberry returns to profit as
-* strong sales drive growth
-Burberry has returned to profit
-following a back-to-basics
-strategy led by chief executive
-Joshua Schulman, which drove
-strong summer sales of coats,
-jackets and handbags,
-outperforming a tough market
-with big rises in China and the
-US.
+* Young people face benefit cuts
+Former health secretary Alan
+Milburn's plans propose removing
+personal independence payments
+for under-25s, replacing them
+with local funds for short-term
+expenses.
 
-* UForce reaches GBP 4.5bn
-* valuation after raising GBP 500m
-London-based naval drone maker
-UForce, founded by Ukrainians,
-has hit a GBP 4.5bn valuation
-after raising more than GBP 500m
-from investors including a GBP
-113m investment from Britain's
-national wealth fund.
+* UK car industry seeks EV delay
+Vehicle manufacturers are
+preparing to press the EU for a
+two-year delay to post-Brexit
+rules of origin tariffs on
+electric cars starting on 1
+January.
 
 # WORLD
+* Train collision kills seven in
+* Egypt
+At least seven people died and
+125 were injured after two
+trains collided and one derailed
+in al-Ayyat, about 50km south of
+Cairo.
+
 * Kenyan doomsday sect leader
-* jailed for 200 years
-Paul Mackenzie, leader of a
-Kenyan doomsday sect, has been
-sentenced to 200 years in prison
-for the murders of 190 children
-and one adult after followers
-were ordered to starve
-themselves and their families.
+* jailed
+Paul Mackenzie was sentenced to
+200 years in prison for the
+murders of 190 children and one
+adult following enforced
+starvation.
 
-* Two Iranian nationals convicted
-* of spying in Britain
-Two Iranian nationals who
-arrived in the UK illegally have
-been convicted of spying for
-their country in the first case
-of its kind in Britain.
-
-* Train collision in Egypt leaves
-* seven dead and 125 injured
-At least seven people were
-killed and 125 injured after two
-trains collided south of Cairo
-in the al-Ayyat district of Giza
-province, prompting the
-president to order a prompt
-investigation.
+* Enslaved people's skulls
+* returned
+Two skulls likely belonging to
+Afro-Brazilians, used in
+eugenics studies at Harvard
+University, were repatriated to
+Brazil by diplomats.
 
 # TECH
-* Nvidia co-founder and CEO Jensen
-* Huang resigns amid scandals
-Nvidia's board has separated
-from longtime co-founder,
-president, and CEO Jensen Huang
-after he admitted to an
-extramarital affair with a woman
-alleged to be a Chinese spy,
-followed by reports of a second
-affair with an Nvidia executive.
+* Jensen Huang resigns as Nvidia
+* CEO
+Jensen Huang has stepped down
+following a scandal involving
+affairs, including one with an
+alleged Chinese spy, with CFO
+Colette Kress taking over as
+interim CEO.
 
-* EU proposes Digital Fairness Act
-* to target online exploitation
-Gaming, social media and
-e-commerce platforms are facing
-a sweeping new European Union
-proposal called the Digital
-Fairness Act, published by the
-EU Commission to tackle
-practices like loot boxes and
-influencer features that exploit
-consumers.
+* Xbox marks 25th anniversary
+Microsoft is attempting to
+reinvent the game console market
+25 years after the original Xbox
+launched on 15 November 2001 to
+compete with Sony and Nintendo.
 
-* Ring confirms its security
-* camera drone will lack manual
-* controls
-Ring has confirmed that its
-security camera drone, launching
-in January, will rely entirely
-on an automated AI Pilot system
-to navigate around obstacles
-with no manual control option
-available.
+* AI chatbots recommend fake sites
+A study by Podqi found that
+shoppers using ChatGPT, Gemini,
+and Perplexity are being
+directed to imposters and risky
+websites.
 
 # BUSINESS
-* UK economy grows 0.7% in third
-* quarter driven by AI
+* Nvidia value drops as Huang
+* resigns
+Nvidia's market value slumped by
+$888bn this week as chipmaker
+CEO Jensen Huang resigned and
+CFO Colette Kress stepped in as
+interim CEO.
+
+* Metro Bank puts itself up for
+* sale
+Metro Bank is up for sale three
+years after its near-collapse, a
+move that could grant Colombian
+billionaire investor Jaime
+Gilinski Bacal a GBP 420m
+windfall.
+
+* UK economy grows by 0.7%
 The UK economy grew by 0.7% in
 the third quarter of the year,
-marking its fastest expansion in
-over two years and receiving a
-significant boost from AI
-investment.
-
-* Poundland owner secures two
-* extra weeks for rescue talks
-US investment firm Gordon
-Brothers, owner of crisis-hit
-Poundland, has secured an
-extended deadline for a
-potential rescue and is
-considering whether one of three
-bidders has enough funds to
-ensure the retail chain's
-survival.
-
-* Water industry bonus regulator
-* to hasten review over trust
-* fears
-The water regulator Ofwat is
-hastening a review to tighten
-the water industry bonus ban
-amid concerns that firms are
-undermining rules to make large
-payments to bosses and damaging
-public trust.
+boosted by artificial
+intelligence investment despite
+high oil prices.
