@@ -1,15 +1,14 @@
 name: Morning brief
 
 on:
-  schedule:
-    # GitHub often starts scheduled runs late (sometimes by hours) or skips them,
-    # especially on the hour/half hour. Several off-peak tries make sure a fresh
-    # brief is ready before 8am London time; each run just overwrites brief.txt.
-    - cron: "13 3 * * *"
-    - cron: "41 4 * * *"
-    - cron: "17 5 * * *"
-    - cron: "52 5 * * *"
-  workflow_dispatch: # lets you run it manually from the Actions tab
+  # No schedule: GitHub's scheduled runs were starting about 8 hours late.
+  # The Pico starts this workflow itself at 07:40 via the API (workflow_dispatch),
+  # and you can also run it manually from the Actions tab.
+  workflow_dispatch:
+
+concurrency:
+  group: brief
+  cancel-in-progress: false
 
 permissions:
   contents: write
