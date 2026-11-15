@@ -14,10 +14,13 @@ Open http://sunrise.local on a phone to see the next wake-up, change the
 settings, set a one-off time, run a 1-minute test sunrise or turn the lamp off.
 """
 
+import io
 import json
 import socket
+import sys
 import time
 
+import machine
 import network
 import ntptime
 import rp2
@@ -97,11 +100,11 @@ def connect_wifi():
     wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
     for _ in range(30):
         if wlan.isconnected():
-            print("WiFi connected:", wlan.ifconfig()[0])
+            note("wifi", True, "connected (IP %s)" % wlan.ifconfig()[0])
             return True
         led.toggle()
         time.sleep(1)
-    print("WiFi failed")
+    note("wifi", False, "couldn't connect (WiFi status %s)" % wlan.status())
     return False
 
 
@@ -112,7 +115,7 @@ def sync_clock():
             print("Clock synced:", today_str(london_now()))
             return True
         except Exception as e:
-            print("NTP failed:", e)
+            note("clock", False, "time sync failed: %s" % e)
             time.sleep(5)
     return False
 
@@ -124,10 +127,12 @@ def fetch_brief():
         # The query string stops GitHub's CDN handing back a cached old copy.
         r = urequests.get(config.BRIEF_URL + "?t=%d" % time.time())
         text = r.text if r.status_code == 200 else None
+        if text is None:
+            note("download", False, "GitHub answered HTTP %d" % r.status_code)
         r.close()
         return text
     except Exception as e:
-        print("Fetch failed:", e)
+        note("download", False, "failed: %s" % e)
         return None
 
 
@@ -146,13 +151,17 @@ def trigger_brief():
         r = urequests.post(url, headers=headers, json={"ref": "main"})
         ok = r.status_code == 204
         if not ok:
-            print("Trigger failed:", r.status_code, r.text[:200])
+            try:
+                why = json.loads(r.text).get("message", "")  # e.g. "Bad credentials"
+            except Exception:
+                why = r.text[:120]
+            note("build", False, "GitHub refused (HTTP %d) %s" % (r.status_code, why))
         r.close()
         if ok:
-            print("Triggered brief build")
+            note("build", True, "started on GitHub")
         return ok
     except Exception as e:
-        print("Trigger failed:", e)
+        note("build", False, "couldn't reach GitHub: %s" % e)
         return False
 
 
@@ -259,8 +268,105 @@ def is_fresh(text, today):
 
 def do_print(text, today):
     led.on()
-    print_brief(text, stale=not is_fresh(text, today))
+    stale = not is_fresh(text, today)
+    print_brief(text, stale=stale)
     led.off()
+    # The printer can't report back, so this only means the Pico sent it
+    note("print", True, "sent to the printer" + (" (an old brief)" if stale else ""))
+
+
+# ---------- status log (shown at http://sunrise.local) ----------
+#
+# A short record of what happened, so a problem can be seen from a phone without plugging
+# the Pico into a laptop. Saved to STATUS_FILE so it survives a restart.
+
+STATUS_FILE = "status.json"
+LOG_SIZE = 25
+status = {"log": [], "crashes": 0, "crash": None}  # log entries: [time, kind, ok, message, count]
+started_ms = time.ticks_ms()
+
+
+def note(kind, ok, msg):
+    """Record an event and print it to the serial console."""
+    print(("" if ok else "PROBLEM ") + kind + ": " + msg)
+    log = status["log"]
+    if log and log[-1][1] == kind and log[-1][3] == msg:
+        log[-1][0] = time.time()  # the same thing again: just update the time and count
+        log[-1][4] += 1
+        return
+    log.append([time.time(), kind, ok, msg, 1])
+    while len(log) > LOG_SIZE:
+        log.pop(0)
+    save_status()
+
+
+def save_status():
+    try:
+        with open(STATUS_FILE, "w") as f:
+            json.dump(status, f)
+    except OSError as e:
+        print("Couldn't save status:", e)
+
+
+def load_status():
+    try:
+        with open(STATUS_FILE) as f:
+            status.update(json.load(f))
+    except (OSError, ValueError):
+        pass
+
+
+def last_event(kind=None, ok=None):
+    """The newest log entry of that kind and/or outcome, or None."""
+    for entry in reversed(status["log"]):
+        if (kind is None or entry[1] == kind) and (ok is None or entry[2] == ok):
+            return entry
+    return None
+
+
+def when(t, now):
+    """'07:40' for today, 'Sun 15 Nov 19:13' for another day."""
+    if t < 1735689600:  # before 2025: logged before the clock was set
+        return "at start-up"
+    lt = time.gmtime(t + london_offset(t))
+    day = (lt[0], lt[1], lt[2])
+    hhmm = "%02d:%02d" % (lt[3], lt[4])
+    return hhmm if day == london_day(now) else fmt_day(day) + " " + hhmm
+
+
+def printer_summary(now):
+    """(headline, all well?, detail lines) about the printer, for the page and /status."""
+    t = london_now()
+    hm_now = (t[3], t[4])
+    if read_last() == today_str(t):
+        p = last_event("print")
+        head, ok = "Today's brief printed" + (" at " + when(p[0], now) if p else ""), True
+    elif hm_now < (config.TRIGGER_HOUR, config.TRIGGER_MINUTE):
+        head, ok = "Next brief: built at %02d:%02d, printed at %02d:%02d" % (
+            config.TRIGGER_HOUR, config.TRIGGER_MINUTE, config.PRINT_HOUR, config.PRINT_MINUTE), True
+    elif hm_now < (config.PRINT_HOUR, config.PRINT_MINUTE):
+        head, ok = "Building today's brief, prints at %02d:%02d" % (config.PRINT_HOUR, config.PRINT_MINUTE), True
+    else:
+        head, ok = "Today's brief hasn't printed yet", False
+    lines = []
+    for kind, label in (("build", "Build"), ("download", "Download"), ("print", "Print")):
+        e = last_event(kind)
+        if e:
+            lines.append("%s: %s, %s" % (label, when(e[0], now), e[3]))
+    bad = last_event(ok=False)
+    if bad:
+        lines.append("Last problem: %s, %s: %s%s" % (
+            when(bad[0], now), bad[1], bad[3], " (x%d)" % bad[4] if bad[4] > 1 else ""))
+    return head, ok, lines
+
+
+def reset_reason():
+    cause = machine.reset_cause()
+    if cause == getattr(machine, "PWRON_RESET", None):
+        return "power on"
+    if cause == getattr(machine, "WDT_RESET", None):
+        return "restart"
+    return "reset code %s" % cause
 
 
 # ---------- sunrise lamp (WiZ bulb) ----------
@@ -296,6 +402,7 @@ manual = None     # [y, m, d, wake-up in minutes or None], a one-off for that da
 done = None       # [y, m, d] of the last morning whose sunrise finished or was stopped
 off_at = None     # when to turn the bulb off after a wake-up
 test_end = None   # end of a test sunrise
+restore_to = None # how the lamp was before a test, to put it back afterwards (None = off)
 sun_end = None    # end of the sunrise the bulb is following now
 sun_level = None  # last (dimming, temp) the bulb confirmed during that sunrise
 next_try = 0      # after the bulb fails to answer, wait until this time
@@ -460,7 +567,7 @@ def wiz(method, params=None):
         if bulb_ip is None:
             bulb_ip = find_bulb()
             if bulb_ip is None:
-                print("Bulb not found")
+                note("lamp", False, "bulb not found on the network")
                 return None
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
@@ -484,6 +591,27 @@ def set_light(on, dimming=100, temp=4000):
     return bool(reply and reply.get("result", {}).get("success"))
 
 
+def restore_params(pilot):
+    """setPilot settings that put the lamp back as `pilot` describes, or None if it was off."""
+    if not pilot or not pilot.get("state"):
+        return None
+    params = {"state": True, "dimming": pilot.get("dimming", 100)}
+    if pilot.get("sceneId"):
+        params["sceneId"] = pilot["sceneId"]
+    elif pilot.get("temp"):
+        params["temp"] = pilot["temp"]
+    elif "r" in pilot:
+        for key in ("r", "g", "b", "c", "w"):
+            if key in pilot:
+                params[key] = pilot[key]
+    return params
+
+
+def restore_light(params):
+    reply = wiz("setPilot", params)
+    return bool(reply and reply.get("result", {}).get("success"))
+
+
 def get_light():
     """The bulb's state, e.g. {'state': True, 'dimming': 55, 'temp': 3100, ...}, or None."""
     reply = wiz("getPilot")
@@ -498,7 +626,7 @@ def follow_sunrise(now, end, length):
     global sun_end, sun_level
     if sun_end != end:
         sun_end, sun_level = end, None
-        print("Sunrise started")
+        note("lamp", True, "sunrise started")
     level = ramp_level(now, end, length)
     if level == sun_level:
         return "ok"
@@ -514,7 +642,7 @@ def follow_sunrise(now, end, length):
 
 def tick_lamp(now):
     """Run the sunrise and the auto-off. Called about once a second."""
-    global test_end, done, off_at, next_try, sun_end
+    global test_end, done, off_at, next_try, sun_end, restore_to
     if now < next_try:
         return
     if test_end is not None and now > test_end + LATE_GRACE:
@@ -531,10 +659,12 @@ def tick_lamp(now):
         if result == "fail":
             next_try = now + 10
         elif result == "stopped" or now >= end:
-            print("Sunrise stopped: lamp changed by hand" if result == "stopped" else "Sunrise finished")
+            note("lamp", True, "sunrise stopped: lamp changed by hand" if result == "stopped" else "sunrise finished")
             if day is None:
                 test_end = None
-                off_at = now + TEST_SECS if result == "ok" else None
+                off_at = now + TEST_SECS if result == "ok" else None  # hold full brightness a minute
+                if result != "ok":
+                    restore_to = None
             else:
                 done = list(day)
                 mins = settings["off_after"]
@@ -547,13 +677,15 @@ def tick_lamp(now):
         if pilot is None and now < off_at + LATE_GRACE:
             next_try = now + 10
             return
-        # Only turn it off if nobody has changed it since the sunrise finished
+        # Only touch it if nobody has changed it since the sunrise finished
         if pilot and pilot.get("state") and pilot.get("dimming") == 100:
-            if not set_light(False) and now < off_at + LATE_GRACE:
+            ok = restore_light(restore_to) if restore_to else set_light(False)
+            if not ok and now < off_at + LATE_GRACE:
                 next_try = now + 10
                 return
-            print("Lamp turned off")
+            note("lamp", True, "put back as it was before the test" if restore_to else "turned off automatically")
         off_at = None
+        restore_to = None
         save_state()
 
 
@@ -585,13 +717,14 @@ def save_settings():
 def save_state():
     try:
         with open(STATE_FILE, "w") as f:
-            json.dump({"plan": plan, "manual": manual, "done": done, "off_at": off_at}, f)
+            json.dump({"plan": plan, "manual": manual, "done": done, "off_at": off_at,
+                       "restore": restore_to}, f)
     except OSError as e:
         print("Couldn't save lamp state:", e)
 
 
 def load_lamp():
-    global plan, manual, done, off_at
+    global plan, manual, done, off_at, restore_to
     try:
         with open(SETTINGS_FILE) as f:
             apply_settings(json.load(f))
@@ -601,6 +734,7 @@ def load_lamp():
         with open(STATE_FILE) as f:
             s = json.load(f)
         plan, manual, done, off_at = s.get("plan"), s.get("manual"), s.get("done"), s.get("off_at")
+        restore_to = s.get("restore")
     except (OSError, ValueError, AttributeError):
         pass
     if off_at is not None and time.time() > off_at + LATE_GRACE:
@@ -619,9 +753,13 @@ input{font-size:1em;width:6.5em}small{color:#666}
 button,a.b{font:inherit;padding:.45em .9em;border-radius:8px;border:1px solid #d9a77a;background:#fff;
 color:#222;text-decoration:none;display:inline-block;margin:.3em .3em 0 0}
 button{background:#e8833a;border-color:#e8833a;color:#fff}
+.ok{border-left:5px solid #4a4}.bad{border-left:5px solid #d33}
+summary{margin-top:.6em;color:#666}ul{padding-left:1.2em;font-size:.85em;color:#444}
+pre{font-size:.75em;white-space:pre-wrap;background:#fff;padding:.5em;border-radius:8px}
 </style></head><body>
 <h1>Sunrise lamp</h1>
 <div class=card><b>%s</b><br><small>%s</small></div>
+%s
 <h2>Just for the next morning</h2>
 <form action=/wake><label>Wake me at <input type=time name=at required></label><button>Set</button></form>
 <a class=b href=/cancel>No wake-up</a><a class=b href=/normal>Back to normal</a>
@@ -638,6 +776,26 @@ button{background:#e8833a;border-color:#e8833a;color:#fff}
 </body></html>"""
 
 REDIRECT = ("303 See Other", "text/plain", "")
+
+
+def esc(text):
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def printer_html(now):
+    """The Printer card, recent events and any recent crash, for the page."""
+    head, ok, lines = printer_summary(now)
+    rows = "".join(["<br><small>%s</small>" % esc(line) for line in lines])
+    events = "".join(["<li>%s %s %s: %s%s</li>" % (
+        when(e[0], now), "&#10003;" if e[2] else "&#10007;", esc(e[1]), esc(e[3]),
+        " (x%d)" % e[4] if e[4] > 1 else "") for e in reversed(status["log"])])
+    crash = ""
+    if status.get("crash") and now - status["crash"][0] < 7 * 86400:
+        crash = "<p><small>Last crash, %s:</small></p><pre>%s</pre>" % (
+            when(status["crash"][0], now), esc(status["crash"][1]))
+    return ('<h2>Printer</h2><div class="card %s"><b>%s</b>%s</div>'
+            '<details><summary>Recent events</summary><ul>%s</ul>%s</details>') % (
+        "ok" if ok else "bad", esc(head), rows, events or "<li>Nothing yet</li>", crash)
 
 
 def unquote(text):
@@ -694,7 +852,7 @@ def cancel_next(now):
 
 def route(path, now):
     """Carry out one web request. Returns (status, content type, body)."""
-    global plan, manual, done, off_at, test_end, sun_end
+    global plan, manual, done, off_at, test_end, sun_end, restore_to
     page, q = parse_path(path)
 
     if page == "/plan":  # from the nightly Shortcut: tomorrow's first timed event
@@ -741,6 +899,8 @@ def route(path, now):
         return REDIRECT
 
     if page == "/test":
+        if test_end is None and off_at is None:  # not already in a test: remember the lamp as it is
+            restore_to = restore_params(get_light())
         test_end = now + TEST_SECS
         off_at = None
         return REDIRECT
@@ -754,16 +914,18 @@ def route(path, now):
                 done = list(day)  # stop this morning's sunrise as well
         sun_end = None
         off_at = None
+        restore_to = None
         save_state()
         set_light(False)
         return REDIRECT
 
     if page == "/status":
-        return "200 OK", "text/plain", "\n".join(status_lines(now))
+        head, ok, lines = printer_summary(now)
+        return "200 OK", "text/plain", "\n".join(status_lines(now) + ("", "Printer: " + head) + tuple(lines))
 
     if page == "/":
         s = settings
-        return "200 OK", "text/html", PAGE % (status_lines(now) + (
+        return "200 OK", "text/html", PAGE % (status_lines(now) + (printer_html(now),
             s["weekday"], s["lead"], s["weekend"], s["ramp"], s["off_after"]))
 
     return "404 Not Found", "text/plain", "Not found"
@@ -790,7 +952,7 @@ def start_server():
         server.setblocking(False)
         print("Web server running")
     except OSError as e:
-        print("Server failed:", e)
+        note("lamp", False, "web page couldn't start: %s" % e)
         server = None
 
 
@@ -811,14 +973,14 @@ def handle_requests(now):
         words = request.split(" ")
         path = words[1] if len(words) > 2 else "/"
         try:
-            status, ctype, body = route(path, now)
+            code, ctype, body = route(path, now)
         except ValueError as e:
-            status, ctype, body = "400 Bad Request", "text/plain", "Bad value: %s" % e
-        head = "HTTP/1.0 %s\r\nContent-Type: %s; charset=utf-8\r\nCache-Control: no-store\r\n" % (status, ctype)
-        if status.startswith("303"):
+            code, ctype, body = "400 Bad Request", "text/plain", "Bad value: %s" % e
+        head = "HTTP/1.0 %s\r\nContent-Type: %s; charset=utf-8\r\nCache-Control: no-store\r\n" % (code, ctype)
+        if code.startswith("303"):
             head += "Location: /\r\n"
         client.sendall((head + "Connection: close\r\n\r\n" + body).encode())
-        print("Web:", path, "->", status, body if ctype == "text/plain" else "")
+        print("Web:", path, "->", code, body if ctype == "text/plain" else "")
     except Exception as e:
         print("Web request failed:", e)
     finally:
@@ -832,7 +994,7 @@ def lamp_loop():
     if now - last_wifi > 60:  # the printer only reconnects in the morning, the lamp needs WiFi always
         last_wifi = now
         if not network.WLAN(network.STA_IF).isconnected():
-            print("WiFi dropped, reconnecting")
+            note("wifi", False, "dropped, reconnecting")
             connect_wifi()
     handle_requests(now)
     now = time.time()
@@ -847,11 +1009,12 @@ def main():
     # Keep retrying WiFi as well as the clock: a failed first join used to leave it stuck here
     while not (connect_wifi() and sync_clock()):
         time.sleep(30)
+    note("start", True, "Pico started (%s)" % reset_reason())
     try:
         load_lamp()
         start_server()
     except Exception as e:
-        print("Lamp setup failed:", e)
+        note("lamp", False, "setup failed: %s" % e)
 
     last_check = 0
     last_trigger = 0
@@ -864,11 +1027,11 @@ def main():
         try:
             lamp_loop()
         except Exception as e:
-            print("Lamp error:", e)
+            note("lamp", False, "error: %s" % e)
 
         # Manual reprint
         if rp2.bootsel_button():
-            print("Button pressed, printing")
+            note("button", True, "pressed: reprinting the latest brief")
             text = fetch_brief()
             if text:
                 do_print(text, today)
@@ -883,6 +1046,9 @@ def main():
             last_check = time.time()
             text = fetch_brief()
             fresh = is_fresh(text, today)
+            if text:
+                note("download", True, "got today's brief" if fresh else
+                     "only an older brief so far (%s)" % text[6:16].strip())
 
             # Not built yet: ask GitHub to build it (again every 20 minutes if needed)
             if not fresh and time.time() - last_trigger > 1200:
@@ -893,14 +1059,39 @@ def main():
                 do_print(text, today)
                 write_last(today)
             elif due:
-                print("Brief not updated yet, will retry")
+                note("download", True, "today's brief not ready yet, will retry in 5 min")
 
         # Resync the clock once a day so it doesn't drift
         if time.time() - last_ntp > 86400:
             if sync_clock():
                 last_ntp = time.time()
 
+        # After an hour of running smoothly, forget earlier crashes
+        if status["crashes"] and time.ticks_diff(time.ticks_ms(), started_ms) > 3600000:
+            status["crashes"] = 0
+            save_status()
+
         time.sleep_ms(200)
 
 
-main()
+def run():
+    """Run main(). If it ever crashes, save the error and restart the Pico, waiting longer
+    after each crash in a row so a fault that keeps happening can't hammer GitHub."""
+    load_status()
+    try:
+        main()
+    except KeyboardInterrupt:
+        raise  # Ctrl-C from Thonny or mpremote
+    except Exception as e:
+        buf = io.StringIO()
+        sys.print_exception(e, buf)
+        status["crash"] = [time.time(), buf.getvalue()[-800:]]
+        status["crashes"] = status.get("crashes", 0) + 1
+        wait = min(1800, 30 * 2 ** (status["crashes"] - 1))
+        note("crash", False, "%s: %s (restarting in %d s)" % (type(e).__name__, e, wait))
+        print(buf.getvalue())
+        time.sleep(wait)
+        machine.reset()
+
+
+run()

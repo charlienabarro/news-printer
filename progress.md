@@ -8,7 +8,7 @@
   hand-change detection, and every web command. Test state was wiped afterwards.
 - Printer tested live: trigger (GitHub run at 19:13 UTC, "Brief 2026-11-15"), fetch and print.
   The print was faint because the Pico was on laptop USB, not the 5V supply.
-- 26 Mac-side logic tests pass (`python3 pico/test_sunrise.py`).
+- 35 Mac-side tests pass (`python3 pico/test_sunrise.py`).
 - Work is on branch `sunrise-lamp`.
 
 ## Next steps (Charlie)
@@ -36,8 +36,22 @@
 | Missed wake-ups (Pico off at the time) are dropped, not replayed | Avoids a sunrise at 14:00 after a power cut | Replay late | Claude |
 | Touching the lamp stops that morning's sunrise; auto-off only if the lamp is still at 100% | Don't fight the user | Ignore manual changes | Claude |
 | Lamp code wrapped in try/except in the main loop | A lamp bug must never stop the printer | None | Claude |
+| Status log on the web page, saved on the Pico | The printer hadn't worked for 3 days with no way to see why | Serial log only (lost unless a laptop is attached) | Charlie asked |
+| Auto-restart after a crash, with doubling waits | A crash used to stop everything, page included; waits stop a crash loop from flooding GitHub | Stay stopped | Claude |
+| Test sunrise restores the lamp afterwards | Turning the lamp off after a test surprised Charlie | Turn off | Claude, after Charlie's question |
 
 ## Log (newest first)
+
+### 15 Nov 2026 (evening)
+- Added a status log shown on http://sunrise.local: a Printer card (build, download, print,
+  last problem) and the last 25 events, saved in `status.json` on the Pico. Errors from Wi-Fi,
+  the clock, the GitHub trigger (with GitHub's reason), the download, the lamp and crashes are
+  all recorded. `/status` includes the printer line too.
+- Crash recovery: `run()` wraps `main()`, saves the traceback, then restarts the Pico after
+  30 s, doubling per crash in a row (max 30 min); the count resets after an hour of running.
+- Test sunrise now puts the lamp back as it was (scene, white or colour) instead of turning it
+  off. Charlie's lamp went off after a test at 19:39, which prompted this.
+- 35 tests pass. Uploaded and checked live: boot log, page card, test-and-restore on the bulb.
 
 ### 15 Nov 2026
 - Brought the local repo up to date with GitHub (it was 17 commits behind), branched `sunrise-lamp`.

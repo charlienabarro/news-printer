@@ -27,7 +27,18 @@ Share button → **Add to Home Screen**.
   One-offs survive the 23:00 Shortcut.
 - **Usual settings:** weekday time, minutes before an event, weekend cut-off, sunrise length,
   auto-off. Tap **Save**. Changes apply straight away, including tomorrow's wake-up.
-- **Lamp:** **Test sunrise (1 min)** and **Turn off**.
+- **Printer:** today's brief at a glance. It shows the last build, download and print, plus
+  the last problem in plain words (e.g. *"07:40, build: GitHub refused (HTTP 401) Bad
+  credentials"*). A green edge means all is well, red means today's brief hasn't printed
+  after 08:00. Tap **Recent events** for the last 25 things that happened. "Print: sent to
+  the printer" means the Pico sent it; the printer can't confirm paper came out.
+- **Lamp:** **Test sunrise (1 min)** and **Turn off**. A test holds full brightness for a
+  minute, then puts the lamp back as it was before (or off, if it was off).
+
+If the program ever crashes, the Pico saves the error and restarts itself. The error then appears
+under **Recent events** as "Last crash". The wait before restarting doubles after each crash in
+a row (30 s, 1 min, 2 min, … up to 30 min), so a fault that keeps happening can't flood GitHub
+with builds.
 
 If you touch the lamp during a sunrise (WiZ app, or switching it off), the sunrise stops for that
 morning. The auto-off also leaves the lamp alone if you've changed it since.
