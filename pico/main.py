@@ -6,8 +6,16 @@ starts the job itself). From PRINT_HOUR it downloads brief.txt and prints it
 on a 58mm ESC/POS thermal printer over UART.
 
 Press the BOOTSEL button at any time to reprint the latest brief.
+
+Also runs the sunrise lamp: a WiZ bulb fades up over the 30 minutes before
+each wake-up. An iPhone Shortcut sends tomorrow's first calendar event every
+night (/plan?first=0915) and the Pico works out the wake-up time from that.
+Open http://sunrise.local on a phone to see the next wake-up, change the
+settings, set a one-off time, run a 1-minute test sunrise or turn the lamp off.
 """
 
+import json
+import socket
 import time
 
 import network
@@ -73,8 +81,17 @@ def nice_date(iso):
 # ---------- network ----------
 
 def connect_wifi():
+    try:
+        network.hostname("sunrise")      # reachable as sunrise.local
+    except Exception:
+        pass
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
+    try:
+        # No WiFi power saving, so the lamp's web page and the bulb's replies get through
+        wlan.config(pm=getattr(network.WLAN, "PM_NONE", 0xa11140))
+    except Exception:
+        pass
     if wlan.isconnected():
         return True
     wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
@@ -246,12 +263,595 @@ def do_print(text, today):
     led.off()
 
 
+# ---------- sunrise lamp (WiZ bulb) ----------
+#
+# How the wake-up time is chosen (UK time; change the settings at http://sunrise.local):
+#   weekdays: the usual time (08:30), or `lead` minutes before the first event if that is earlier
+#   weekends: `lead` minutes before the first event, but only if it starts before 11:00
+# Every night at 23:00 an iPhone Shortcut sends tomorrow's first timed calendar event
+# (/plan?first=0915, or first=none). If the phone never sends it, weekdays still use the
+# usual time. A one-off time set on the page replaces the rule for that one morning.
+# The wake-up time is worked out afresh each time, so a changed setting applies at once.
+
+BULB_MAC = "9877d5f10ef2"
+WIZ_PORT = 38899
+STATE_FILE = "lamp_state.json"
+SETTINGS_FILE = "lamp_settings.json"
+EARLIEST_EVENT = 4 * 60   # ignore events before 04:00, so a 00:30 event can't wake you at 23:30
+LATE_GRACE = 600          # a wake-up more than 10 minutes in the past counts as missed
+TEST_SECS = 60
+
+DEFAULTS = {
+    "weekday": "08:30",   # usual weekday wake-up
+    "weekend": "11:00",   # weekends: only wake for an event that starts before this
+    "lead": 60,           # minutes between wake-up and the first event
+    "ramp": 30,           # sunrise length in minutes
+    "off_after": 90,      # minutes after wake-up to turn the bulb off (0 = leave it on)
+}
+LIMITS = {"lead": (0, 240), "ramp": (1, 120), "off_after": (0, 720)}
+
+settings = dict(DEFAULTS)
+plan = None       # [y, m, d, first event in minutes or None], sent by the Shortcut for that day
+manual = None     # [y, m, d, wake-up in minutes or None], a one-off for that day
+done = None       # [y, m, d] of the last morning whose sunrise finished or was stopped
+off_at = None     # when to turn the bulb off after a wake-up
+test_end = None   # end of a test sunrise
+sun_end = None    # end of the sunrise the bulb is following now
+sun_level = None  # last (dimming, temp) the bulb confirmed during that sunrise
+next_try = 0      # after the bulb fails to answer, wait until this time
+bulb_ip = None
+server = None
+last_wifi = 0
+last_tick = 0
+
+
+# --- UK time helpers ---
+
+def london_offset(utc):
+    """Seconds to add to UTC to get UK clock time at that moment."""
+    y = time.gmtime(utc)[0]
+    bst_start = time.mktime((y, 3, last_sunday(y, 3), 1, 0, 0, 0, 0))
+    bst_end = time.mktime((y, 10, last_sunday(y, 10), 1, 0, 0, 0, 0))
+    return 3600 if bst_start <= utc < bst_end else 0
+
+
+def london_day(utc, add=0):
+    """UK date (y, m, d) at `utc`, moved on by `add` days."""
+    t = time.gmtime(utc + london_offset(utc))
+    return tuple(time.gmtime(time.mktime((t[0], t[1], t[2], 12, 0, 0, 0, 0)) + add * 86400)[:3])
+
+
+def weekday(day):
+    return time.gmtime(time.mktime((day[0], day[1], day[2], 12, 0, 0, 0, 0)))[6]  # 0 = Monday
+
+
+def london_to_utc(day, mins):
+    """UTC time of a UK clock time (minutes after midnight) on `day`."""
+    t = time.mktime((day[0], day[1], day[2], mins // 60, mins % 60, 0, 0, 0))
+    return t - london_offset(t - 3600)
+
+
+def hm(text):
+    """'08:30', '0830' or '830' -> minutes after midnight."""
+    text = str(text).strip().replace(":", "")
+    h, m = int(text[:-2] or "0"), int(text[-2:])
+    if not (0 <= h < 24 and 0 <= m < 60):
+        raise ValueError("not a time: " + text)
+    return h * 60 + m
+
+
+def fmt_hm(mins):
+    return "%02d:%02d" % (mins // 60, mins % 60)
+
+
+def fmt_day(day):
+    return "%s %d %s" % (DAYS[weekday(day)][:3], day[2], MONTHS[day[1] - 1][:3])
+
+
+# --- choosing the wake-up time ---
+
+def rule_wake(day, first):
+    """(minutes, reason) for `day` from the settings. `first` = first timed event, or None."""
+    if first is not None and first < EARLIEST_EVENT:
+        first = None
+    lead = settings["lead"]
+    before = "%d min before %s event" % (lead, fmt_hm(first)) if first is not None else ""
+    if weekday(day) >= 5:
+        if first is not None and first < hm(settings["weekend"]):
+            return first - lead, before
+        return None, "weekend, no event before " + settings["weekend"]
+    usual = hm(settings["weekday"])
+    if first is not None and first - lead < usual:
+        return first - lead, before
+    return usual, "usual weekday time"
+
+
+def wake_for(day):
+    """(minutes or None, reason) for one morning: a one-off wins, then the rule."""
+    if manual and tuple(manual[:3]) == day:
+        if manual[3] is None:
+            return None, "cancelled for this morning"
+        return manual[3], "one-off"
+    if plan and tuple(plan[:3]) == day:
+        return rule_wake(day, plan[3])
+    mins, why = rule_wake(day, None)
+    return mins, why + ", no calendar info yet"
+
+
+def is_done(day):
+    return done is not None and tuple(done) == day
+
+
+def upcoming(now):
+    """(UTC time or None, day) of the next wake-up: today's if still to come, else tomorrow's."""
+    day = london_day(now)
+    mins = wake_for(day)[0]
+    if mins is not None and not is_done(day):
+        t = london_to_utc(day, mins)
+        if t >= now - LATE_GRACE:
+            return t, day
+    day = london_day(now, 1)
+    mins = wake_for(day)[0]
+    return (None if mins is None else london_to_utc(day, mins)), day
+
+
+def describe(day):
+    mins, why = wake_for(day)
+    if mins is None:
+        return "%s: no wake-up (%s)" % (fmt_day(day), why)
+    return "%s: wake-up %s (%s)" % (fmt_day(day), fmt_hm(mins), why)
+
+
+def ramp_level(now, end, length):
+    """(dimming %, colour temperature K) part-way through a sunrise that ends at `end`."""
+    f = min(1, max(0, 1 - (end - now) / length))
+    dimming = int(10 + 90 * f)
+    return dimming, 2200 + 20 * (dimming - 10)  # 10% at 2200K up to 100% at 4000K
+
+
+# --- talking to the bulb (UDP JSON on port 38899) ---
+
+def broadcast_addrs():
+    addrs = ["255.255.255.255"]
+    try:
+        ip, mask = network.WLAN(network.STA_IF).ifconfig()[:2]
+        ip = [int(x) for x in ip.split(".")]
+        mask = [int(x) for x in mask.split(".")]
+        addrs.append(".".join([str(ip[i] | (255 - mask[i])) for i in range(4)]))
+    except Exception:
+        pass
+    return addrs
+
+
+def find_bulb():
+    """Ask every WiZ bulb on the network to answer, and return the IP of ours (by MAC)."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        try:
+            s.setsockopt(socket.SOL_SOCKET, getattr(socket, "SO_BROADCAST", 0x20), 1)
+        except OSError:
+            pass
+        s.settimeout(0.5)
+        msg = json.dumps({"method": "getPilot", "params": {}}).encode()
+        for _ in range(4):
+            for dest in broadcast_addrs():
+                try:
+                    s.sendto(msg, (dest, WIZ_PORT))
+                except OSError:
+                    pass
+            try:
+                while True:
+                    data, addr = s.recvfrom(1024)
+                    if json.loads(data).get("result", {}).get("mac") == BULB_MAC:
+                        print("Bulb found:", addr[0])
+                        return addr[0]
+            except (OSError, ValueError):
+                pass
+        return None
+    finally:
+        s.close()
+
+
+def wiz(method, params=None):
+    """Send one command to the bulb, up to 3 tries (its signal is weak). Returns the reply or None."""
+    global bulb_ip
+    msg = json.dumps({"method": method, "params": params or {}}).encode()
+    for attempt in range(3):
+        if bulb_ip is None:
+            bulb_ip = find_bulb()
+            if bulb_ip is None:
+                print("Bulb not found")
+                return None
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.settimeout(1)
+            s.sendto(msg, (bulb_ip, WIZ_PORT))
+            return json.loads(s.recvfrom(1024)[0])
+        except (OSError, ValueError):
+            if attempt == 1:
+                bulb_ip = None  # missed twice: its IP may have changed, so look it up again
+        finally:
+            s.close()
+    return None
+
+
+def set_light(on, dimming=100, temp=4000):
+    params = {"state": on}
+    if on:
+        params["dimming"] = dimming
+        params["temp"] = temp
+    reply = wiz("setPilot", params)
+    return bool(reply and reply.get("result", {}).get("success"))
+
+
+def get_light():
+    """The bulb's state, e.g. {'state': True, 'dimming': 55, 'temp': 3100, ...}, or None."""
+    reply = wiz("getPilot")
+    return reply.get("result") if reply else None
+
+
+# --- running the sunrise ---
+
+def follow_sunrise(now, end, length):
+    """Move the bulb to where the sunrise should be now.
+    Returns "ok", "fail" (no answer from the bulb) or "stopped" (lamp changed by hand)."""
+    global sun_end, sun_level
+    if sun_end != end:
+        sun_end, sun_level = end, None
+        print("Sunrise started")
+    level = ramp_level(now, end, length)
+    if level == sun_level:
+        return "ok"
+    if sun_level is not None:
+        pilot = get_light()
+        if pilot and (not pilot.get("state") or abs(pilot.get("dimming", sun_level[0]) - sun_level[0]) > 2):
+            return "stopped"
+    if not set_light(True, level[0], level[1]):
+        return "fail"
+    sun_level = level
+    return "ok"
+
+
+def tick_lamp(now):
+    """Run the sunrise and the auto-off. Called about once a second."""
+    global test_end, done, off_at, next_try, sun_end
+    if now < next_try:
+        return
+    if test_end is not None and now > test_end + LATE_GRACE:
+        test_end = None  # the bulb never answered: give up on the test
+    if test_end is not None:
+        end, length, day = test_end, TEST_SECS, None
+    else:
+        end, day = upcoming(now)
+        length = settings["ramp"] * 60
+        if end is not None and now < end - length:
+            end = None
+    if end is not None:
+        result = follow_sunrise(now, end, length)
+        if result == "fail":
+            next_try = now + 10
+        elif result == "stopped" or now >= end:
+            print("Sunrise stopped: lamp changed by hand" if result == "stopped" else "Sunrise finished")
+            if day is None:
+                test_end = None
+                off_at = now + TEST_SECS if result == "ok" else None
+            else:
+                done = list(day)
+                mins = settings["off_after"]
+                off_at = end + mins * 60 if mins and result == "ok" else None
+            sun_end = None
+            save_state()
+        return
+    if off_at is not None and now >= off_at:
+        pilot = get_light()
+        if pilot is None and now < off_at + LATE_GRACE:
+            next_try = now + 10
+            return
+        # Only turn it off if nobody has changed it since the sunrise finished
+        if pilot and pilot.get("state") and pilot.get("dimming") == 100:
+            if not set_light(False) and now < off_at + LATE_GRACE:
+                next_try = now + 10
+                return
+            print("Lamp turned off")
+        off_at = None
+        save_state()
+
+
+# --- saved state and settings ---
+
+def apply_settings(new):
+    """Copy valid settings from `new`; anything invalid keeps its old value."""
+    for key in DEFAULTS:
+        if key not in new:
+            continue
+        try:
+            if key in LIMITS:
+                lo, hi = LIMITS[key]
+                settings[key] = min(hi, max(lo, int(float(new[key]))))
+            else:
+                settings[key] = fmt_hm(hm(new[key]))
+        except (ValueError, TypeError):
+            pass
+
+
+def save_settings():
+    try:
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(settings, f)
+    except OSError as e:
+        print("Couldn't save lamp settings:", e)
+
+
+def save_state():
+    try:
+        with open(STATE_FILE, "w") as f:
+            json.dump({"plan": plan, "manual": manual, "done": done, "off_at": off_at}, f)
+    except OSError as e:
+        print("Couldn't save lamp state:", e)
+
+
+def load_lamp():
+    global plan, manual, done, off_at
+    try:
+        with open(SETTINGS_FILE) as f:
+            apply_settings(json.load(f))
+    except (OSError, ValueError):
+        pass
+    try:
+        with open(STATE_FILE) as f:
+            s = json.load(f)
+        plan, manual, done, off_at = s.get("plan"), s.get("manual"), s.get("done"), s.get("off_at")
+    except (OSError, ValueError, AttributeError):
+        pass
+    if off_at is not None and time.time() > off_at + LATE_GRACE:
+        off_at = None  # long past (the Pico was off), so don't switch the lamp off out of the blue
+
+
+# --- web page and commands ---
+
+PAGE = """<!doctype html><html><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1"><title>Sunrise lamp</title><style>
+body{font:17px -apple-system,system-ui,sans-serif;max-width:30em;margin:0 auto;padding:1em;color:#222;background:#fdf8f2}
+h1{font-size:1.4em}h2{font-size:1.05em;margin:1.6em 0 .4em}
+.card{background:#fff;border-radius:12px;padding:.8em 1em;box-shadow:0 1px 3px #0002}
+label{display:flex;justify-content:space-between;align-items:center;gap:1em;margin:.6em 0}
+input{font-size:1em;width:6.5em}small{color:#666}
+button,a.b{font:inherit;padding:.45em .9em;border-radius:8px;border:1px solid #d9a77a;background:#fff;
+color:#222;text-decoration:none;display:inline-block;margin:.3em .3em 0 0}
+button{background:#e8833a;border-color:#e8833a;color:#fff}
+</style></head><body>
+<h1>Sunrise lamp</h1>
+<div class=card><b>%s</b><br><small>%s</small></div>
+<h2>Just for the next morning</h2>
+<form action=/wake><label>Wake me at <input type=time name=at required></label><button>Set</button></form>
+<a class=b href=/cancel>No wake-up</a><a class=b href=/normal>Back to normal</a>
+<h2>Usual settings</h2>
+<form action=/save>
+<label>Weekday wake-up <input type=time name=weekday value=%s></label>
+<label>Minutes before an early event <input type=number name=lead min=0 max=240 value=%d></label>
+<label>Weekends: only for events before <input type=time name=weekend value=%s></label>
+<label>Sunrise length (minutes) <input type=number name=ramp min=1 max=120 value=%d></label>
+<label>Turn off after wake-up (minutes, 0 = never) <input type=number name=off_after min=0 max=720 value=%d></label>
+<button>Save</button></form>
+<h2>Lamp</h2>
+<a class=b href=/test>Test sunrise (1 min)</a><a class=b href=/off>Turn off</a>
+</body></html>"""
+
+REDIRECT = ("303 See Other", "text/plain", "")
+
+
+def unquote(text):
+    """Undo URL encoding, e.g. '08%3A30' -> '08:30'."""
+    parts = text.replace("+", " ").split("%")
+    out = parts[0]
+    for p in parts[1:]:
+        try:
+            out += chr(int(p[:2], 16)) + p[2:]
+        except ValueError:
+            out += "%" + p
+    return out
+
+
+def parse_path(path):
+    """'/save?ramp=30&weekday=08%3A30' -> ('/save', {'ramp': '30', 'weekday': '08:30'})"""
+    parts = path.split("?", 1)
+    query = {}
+    if len(parts) > 1:
+        for item in parts[1].split("&"):
+            kv = item.split("=", 1)
+            if kv[0]:
+                query[kv[0]] = unquote(kv[1]) if len(kv) > 1 else ""
+    return parts[0], query
+
+
+def clock(utc):
+    t = time.gmtime(utc + london_offset(utc))
+    return "%02d:%02d" % (t[3], t[4])
+
+
+def status_lines(now):
+    """Two lines for the page and /status: the next wake-up, then the detail."""
+    t, day = upcoming(now)
+    mins, why = wake_for(day)
+    head = "%s: %s" % (fmt_day(day), "no wake-up" if mins is None else "wake-up " + fmt_hm(mins))
+    if test_end is not None:
+        why = "Test sunrise running"
+    elif t is not None and now >= t - settings["ramp"] * 60:
+        why = "Sunrise running: %d%%" % ramp_level(now, t, settings["ramp"] * 60)[0]
+    elif off_at is not None:
+        why += "; lamp turns off at " + clock(off_at)
+    return head, why
+
+
+def cancel_next(now):
+    """No wake-up on the next morning (the one /status shows)."""
+    global manual
+    day = upcoming(now)[1]
+    manual = list(day) + [None]
+    save_state()
+    return day
+
+
+def route(path, now):
+    """Carry out one web request. Returns (status, content type, body)."""
+    global plan, manual, done, off_at, test_end, sun_end
+    page, q = parse_path(path)
+
+    if page == "/plan":  # from the nightly Shortcut: tomorrow's first timed event
+        first = q.get("first", "").strip().lower()
+        day = london_day(now, 1)
+        plan = list(day) + [None if first in ("", "none", "-1") else hm(first)]
+        save_state()
+        return "200 OK", "text/plain", describe(day)
+
+    if page == "/wake":
+        if "at" in q:  # one-off: the next time the clock shows this
+            mins = hm(q["at"])
+            day = london_day(now)
+            if london_to_utc(day, mins) <= now:
+                day = london_day(now, 1)
+            manual = list(day) + [mins]
+        elif "in" in q:  # /wake?in=SECONDS (0 or less cancels the next wake-up)
+            secs = int(float(q["in"]))
+            if secs <= 0:
+                return "200 OK", "text/plain", describe(cancel_next(now))
+            t = now + secs
+            lt = time.gmtime(t + london_offset(t))
+            day = (lt[0], lt[1], lt[2])
+            manual = list(day) + [lt[3] * 60 + lt[4]]
+        else:
+            raise ValueError("use /wake?at=HH:MM or /wake?in=SECONDS")
+        if is_done(day):
+            done = None
+        save_state()
+        return REDIRECT if "at" in q else ("200 OK", "text/plain", describe(day))
+
+    if page == "/cancel":
+        cancel_next(now)
+        return REDIRECT
+
+    if page == "/normal":
+        manual = None
+        save_state()
+        return REDIRECT
+
+    if page == "/save":
+        apply_settings(q)
+        save_settings()
+        return REDIRECT
+
+    if page == "/test":
+        test_end = now + TEST_SECS
+        off_at = None
+        return REDIRECT
+
+    if page == "/off":
+        if test_end is not None:
+            test_end = None
+        else:
+            t, day = upcoming(now)
+            if t is not None and now >= t - settings["ramp"] * 60:
+                done = list(day)  # stop this morning's sunrise as well
+        sun_end = None
+        off_at = None
+        save_state()
+        set_light(False)
+        return REDIRECT
+
+    if page == "/status":
+        return "200 OK", "text/plain", "\n".join(status_lines(now))
+
+    if page == "/":
+        s = settings
+        return "200 OK", "text/html", PAGE % (status_lines(now) + (
+            s["weekday"], s["lead"], s["weekend"], s["ramp"], s["off_after"]))
+
+    return "404 Not Found", "text/plain", "Not found"
+
+
+def start_server():
+    global server
+    try:
+        if server:
+            server.close()
+        # Listen on IPv6 as well as IPv4: phones and Macs often reach sunrise.local over IPv6,
+        # and an IPv4-only server resets those connections.
+        try:
+            server = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(("::", 80))
+        except (AttributeError, OSError):
+            if server:
+                server.close()
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(("0.0.0.0", 80))
+        server.listen(2)
+        server.setblocking(False)
+        print("Web server running")
+    except OSError as e:
+        print("Server failed:", e)
+        server = None
+
+
+def handle_requests(now):
+    """Answer at most one waiting web request without holding up the main loop."""
+    if server is None:
+        start_server()
+        return
+    try:
+        client, _ = server.accept()
+    except OSError as e:
+        if e.args and e.args[0] != 11:  # 11 = EAGAIN, nobody waiting
+            print("Web accept failed:", e)
+        return
+    try:
+        client.settimeout(2)
+        request = client.recv(1024).decode()
+        words = request.split(" ")
+        path = words[1] if len(words) > 2 else "/"
+        try:
+            status, ctype, body = route(path, now)
+        except ValueError as e:
+            status, ctype, body = "400 Bad Request", "text/plain", "Bad value: %s" % e
+        head = "HTTP/1.0 %s\r\nContent-Type: %s; charset=utf-8\r\nCache-Control: no-store\r\n" % (status, ctype)
+        if status.startswith("303"):
+            head += "Location: /\r\n"
+        client.sendall((head + "Connection: close\r\n\r\n" + body).encode())
+        print("Web:", path, "->", status, body if ctype == "text/plain" else "")
+    except Exception as e:
+        print("Web request failed:", e)
+    finally:
+        client.close()
+
+
+def lamp_loop():
+    """Everything the lamp needs on each pass of the main loop."""
+    global last_wifi, last_tick
+    now = time.time()
+    if now - last_wifi > 60:  # the printer only reconnects in the morning, the lamp needs WiFi always
+        last_wifi = now
+        if not network.WLAN(network.STA_IF).isconnected():
+            print("WiFi dropped, reconnecting")
+            connect_wifi()
+    handle_requests(now)
+    now = time.time()
+    if now != last_tick:
+        last_tick = now
+        tick_lamp(now)
+
+
 # ---------- main loop ----------
 
 def main():
-    connect_wifi()
-    while not sync_clock():
+    # Keep retrying WiFi as well as the clock: a failed first join used to leave it stuck here
+    while not (connect_wifi() and sync_clock()):
         time.sleep(30)
+    try:
+        load_lamp()
+        start_server()
+    except Exception as e:
+        print("Lamp setup failed:", e)
 
     last_check = 0
     last_trigger = 0
@@ -259,6 +859,12 @@ def main():
     while True:
         now = london_now()
         today = today_str(now)
+
+        # Sunrise lamp. Wrapped so that a lamp problem can never stop the printer.
+        try:
+            lamp_loop()
+        except Exception as e:
+            print("Lamp error:", e)
 
         # Manual reprint
         if rp2.bootsel_button():
