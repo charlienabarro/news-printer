@@ -1,114 +1,94 @@
-@DATE 2026-11-12
+@DATE 2026-11-15
 # UK
-* Rayner approves Piddington
-* asylum centre
-Communities Secretary Angela
-Rayner has granted full planning
-permission for a Ministry of
-Defence site near Piddington,
-Oxfordshire, to house 1,200
-asylum seekers despite local
-opposition.
+* Trident submarine finishes
+* record patrol
+HMS Vengeance concluded a seven-
+month underwater deployment in
+Scotland, raising concerns about
+maintenance and crew impact.
 
-* Two men convicted of spying for
-* Iran
-Mostafa Sepahvand and Farhad
-Javadi Manesh have been found
-guilty of assisting Iranian
-intelligence by carrying out
-surveillance to help eliminate
-UK-based journalists.
+* Andy Burnham pledges youth jobs
+* overhaul
+The prime minister promised a
+root-and-branch rethink of
+support and a benefits backstop
+to tackle the youth employment
+crisis.
 
-* Teenager admits knife murder in
-* Leeds
-Kayla Smith, 18, has pleaded
-guilty to the murder of 16-year-
-old Chloe Watson Dransfield,
-whom she stabbed to death during
-a planned fight over a young man
-in Leeds.
+* Poundland secures rescue talks
+* extension
+The discount chain received an
+extended deadline as its US
+owners released funds to restock
+stores with Yorkshire Tea and
+Pot Noodle.
 
 # WORLD
+* Kenyan sect leader jailed for
+* 200 years
+Paul Mackenzie was convicted of
+murdering 190 children and one
+adult after ordering followers
+to starve themselves.
+
 * Train collision in Egypt kills
 * seven
-A crash involving two trains in
-the al-Ayyat district of Giza
-province, about 50km from Cairo,
-has left seven people dead and
-at least 125 injured.
+At least seven people died and
+125 were injured when two trains
+collided in al-Ayyat district in
+Giza province, Egypt.
 
-* Sect leader jailed for 200 years
-* in Kenya
-Paul Mackenzie has been
-sentenced to 200 years in prison
-for murdering 190 children and
-one adult after forcing
-followers to starve themselves
-and their families.
-
-* Caine prize winner cleared of
-* using AI
-Simbarashe Kundizeza, a
-Zimbabwean author, has been
-cleared of using artificial
-intelligence after a month-long
-investigation concluded his
-story The Blue Fighter was
-human-written.
+* US asks about Ukraine Donbas
+* withdrawal
+Volodymyr Zelenskyy said the US
+asked if Ukraine would give up
+parts of the Donbas region in
+exchange for NATO membership.
 
 # TECH
-* Jensen Huang resigns as Nvidia
-* CEO
-Jensen Huang has stepped down as
-Nvidia's chief executive
-following reports of two
-affairs, including one with an
-alleged Chinese spy and another
-with a direct report.
+* Apple smart glasses planned for
+* June
+Bloomberg analyst Mark Gurman
+reported that Apple will
+announce its first model,
+lacking augmented reality
+features, at June's WWDC.
 
-* Microsoft Outlook suffers global
-* outage
-Users around the world
-experienced widespread access
-issues for Microsoft Outlook
-across web and app platforms
-after a portion of
-infrastructure failed.
+* SpaceX captures Starship with
+* tower
+SpaceX successfully executed its
+first chopstick catch of a
+Starship booster using its
+Mechazilla launch and catch
+tower in Texas.
 
-* Google launches Gemini 4
-* Hydrogen
-Google has released its new
-Gemini 4 Hydrogen model,
-designed to better handle
-complex, multi-part questions,
-hard-to-understand typos, and
-highly specific user requests.
+* LG B6E OLED TV heavily
+* discounted
+Best Buy slashed the price of
+LG's 55-inch B6E OLED TV by 50
+percent to an all-time low of
+$39.99 during a weekend event.
 
 # BUSINESS
-* UK economy grows in third
-* quarter
-The UK economy grew by 0.7% in
-the third quarter, achieving its
-fastest expansion in two and a
-half years amid boosted
-investment in artificial
-intelligence.
+* Thames Water creditors offer 75m
+* pounds
+Creditors established a 75m
+pound fund for vulnerable
+customers to win Andy Burnham's
+support and avert
+nationalisation of Thames Water.
 
-* Metro Bank puts itself up for
-* sale
-Metro Bank is seeking a buyer
-three years after its near-
-collapse, a transaction that
-could result in a 420 million
-pound windfall for Colombian
-billionaire investor Jaime
-Gilinski Bacal.
+* Nvidia CEO Jensen Huang resigns
+Jensen Huang stepped down
+following corporate scandals
+involving allegations of
+international espionage and
+extramarital affairs.
 
-* Poundland secures rescue
-* deadline extension
-Crisis-hit budget retailer
-Poundland has secured an
-extended two-week deadline from
-US investment firm Gordon
-Brothers for a potential rescue
-and solvent sale.
+* Chip app targets retail
+* investors
+British tech company Chip is
+offering retail investors shares
+in a first for the London Stock
+Exchange private securities
+market.
