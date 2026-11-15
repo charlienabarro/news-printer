@@ -49,6 +49,11 @@ Use the printer's **TTL** pins, never RS232. Never power the Pico from USB and t
 - Remembers what it printed, so a power cut won't cause a reprint.
 - Handles British Summer Time automatically.
 
+## Sunrise lamp
+
+The same Pico also runs a WiZ wake-up light, with a settings page at http://sunrise.local.
+Setup, the iPhone Shortcut and the settings are in [SUNRISE.md](SUNRISE.md).
+
 ## Changing the news
 
 Edit `FEEDS` in `make_brief.py`. Any RSS feed works.
