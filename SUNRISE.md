@@ -110,6 +110,29 @@ first event (rare).
 | It never runs at night | Tap **›** next to 23:00: Daily, and running without asking |
 | Wrong wake-up time | Change the rules on http://sunrise.local, not in the Shortcut |
 
+## Voice control with Siri (works when the phone is locked)
+
+Siri can run any shortcut by saying its name, from a locked iPhone, an Apple Watch or a HomePod.
+The WiZ app adds its own actions to Shortcuts (Power Toggle, Brightness Level, Play Scene and
+more), so no Pico changes are needed.
+
+1. **Settings → Siri** (or **Apple Intelligence & Siri**): turn on **Allow Siri When Locked**,
+   and set **Talk to Siri** to "Siri" or "Hey Siri".
+2. **Shortcuts** → **Shortcuts** tab → **+** → search `WiZ` → pick **Power Toggle** → choose
+   your lamp.
+   - If it lets you pick on or off, make two shortcuts: one set to on, one set to off.
+   - If it only toggles, make one shortcut.
+3. Rename each shortcut with the **⌄** next to its name at the top, e.g. **Lamp on** and
+   **Lamp off** (or just **Lamp**). The name is what you say to Siri.
+4. Lock the phone and say *"Hey Siri, lamp off"*.
+
+If Siri asks you to unlock first, the WiZ action is opening the WiZ app. Then the fallback is a
+shortcut that calls the Pico instead (**Get Contents of URL** → `http://sunrise.local/off`), which
+doesn't open an app. An "on" address would need a small Pico update.
+
+Turning the lamp on or off by voice during a sunrise counts as changing it by hand, so the
+sunrise stops for that morning.
+
 ## Putting the Pico back on its own power
 
 The printer must run from the 5V supply. On USB from a laptop it prints slowly and faintly,
