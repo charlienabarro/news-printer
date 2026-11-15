@@ -1,28 +1,28 @@
 # Progress
 
-## Current state (15 Nov 2026)
+## Current state (15 Nov 2026, 20:10)
 
-- `pico/main.py` with the sunrise lamp is on the Pico W and running (MicroPython 1.29.0).
-  Boot log shows `WiFi connected`, `Clock synced` and `Web server running`.
-- Lamp tested live on the real bulb: 1-minute test sunrise (10%→100%, 2200K→4000K), auto-off,
-  hand-change detection, and every web command. Test state was wiped afterwards.
-- Printer tested live: trigger (GitHub run at 19:13 UTC, "Brief 2026-11-15"), fetch and print.
-  The print was faint because the Pico was on laptop USB, not the 5V supply.
+- Pico W is on its 5V supply, running the code on `main` (MicroPython 1.29.0).
+- Lamp tested live on the real bulb: test sunrise, auto-off/restore, hand-change detection,
+  every web command. Printer tested live: GitHub trigger, fetch, print; BOOTSEL reprint ran
+  at 19:49 on the 5V supply.
+- iPhone Shortcut built (3 actions under an "At 23:00" trigger, newer Shortcuts layout) and
+  run by hand at 20:07: the Pico received the plan ("Mon 16 Nov: wake-up 08:30, usual weekday
+  time").
 - 35 Mac-side tests pass (`python3 pico/test_sunrise.py`).
-- Work is on branch `sunrise-lamp`.
 
 ## Next steps (Charlie)
 
-1. Move the Pico back to the 5V supply and press BOOTSEL once (SUNRISE.md, last section).
-   Must happen before 07:40 tomorrow or the 08:00 print will be faint again.
-2. Build the iPhone Shortcut (SUNRISE.md section B) and run it once by hand.
-3. Merge `sunrise-lamp` into `main` once happy.
+1. Optional check that event times are read: add a 07:30 event tomorrow, run the Shortcut,
+   expect "wake-up 06:30"; delete the event and run it again.
+2. Monday 16 Nov: brief should build at 07:40 and print at 08:00; sunrise 08:00-08:30,
+   lamp off at 10:00. Check the Printer card on http://sunrise.local after 08:00.
 
 ## Open questions
 
-- Shortcut screen labels on the current iOS haven't been checked against Apple's page
-  (support.apple.com was unreachable from here).
-- `sunrise.local` worked from the Mac (IPv6 and IPv4). Not yet tried from the iPhone.
+- Not yet confirmed that an event time arrives in the right format (the 20:07 test found no
+  event before 09:30). The 07:30 test event above settles it.
+- Whether the BOOTSEL print at 19:49 came out dark on the 5V supply (only Charlie can see).
 
 ## Decisions
 
