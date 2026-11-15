@@ -56,125 +56,59 @@ curl "http://sunrise.local/wake?in=3600"      # one-off in N seconds; in=-1 skip
 
 ## iPhone Shortcut (tap by tap)
 
-**What it does:** every night at 23:00 it finds tomorrow's first calendar event (not all-day,
-starting after 04:00) and sends its start time to the Pico, e.g. `first=0915`, or `first=none`
-if there isn't one. The Pico then picks the wake-up time from your settings.
+**What it does:** at 23:00 it finds the next calendar event in the coming day (not all-day) and
+sends its start time to the Pico, e.g. `first=0915`. If there's no event it sends `first=` with
+nothing after it. The Pico works out the wake-up time from your settings, so the Shortcut never
+needs changing.
 
-Checked against Apple's Shortcuts guide for iOS 26 (Nov 2026). Button names can shift slightly
-between iOS versions; where they differ, the alternatives are given. Takes about 10 minutes.
+It's 3 actions under a 23:00 trigger. Your phone may show the trigger as **At 23:00** at the top
+of the shortcut (newer iOS) or under the **Automation** tab (older iOS).
 
-**Before you start:** your iPhone must be on the same Wi-Fi as the Pico. Check that
-http://sunrise.local opens in Safari.
+**1. The trigger.** Make a new shortcut with an **At 23:00** trigger (older iOS: Automation tab
+→ **+** → **Time of Day** → 23:00 → **Daily** → **Run Immediately** → **New Blank Automation**).
+Tap the **›** next to 23:00 and make sure it repeats **Daily** and runs **without asking**:
+choose **Run Immediately**, or turn off **Confirm/Ask Before Running**.
 
-### Part 1: create the 23:00 trigger
+**2. Find Calendar Events.** Search bar at the bottom → type `find calendar` → tap it. Then:
+- Make the filter read **Start Date is in the next 1 days**. Tap the condition to pick
+  **is in the next**, the number to type **1**, and the unit to pick **days**.
+- **Add Filter** → tap the new filter's first word → **Is All Day** → set it so all-day events
+  are **left out** (switch off, or "Is Not All Day").
+- **Sort by** → **Start Date**, **Order** → **Oldest First**, **Limit** on → **1**.
+  (No Sort/Limit? Tap the action's **›** to show more options.)
 
-1. Open the **Shortcuts** app and tap the **Automation** tab at the bottom.
-2. Tap **+** (top right). If you've never made an automation, tap **New Automation** in the
-   middle of the screen instead. If you see **Create Personal Automation**, tap it.
-3. Scroll the list of triggers and tap **Time of Day**.
-4. Make sure **Time of Day** is selected (not Sunrise/Sunset), then tap the time and set
-   **23:00**.
-5. Under **Repeat**, choose **Daily**.
-6. Make it run without asking:
-   - iOS 17–26: tap **Run Immediately**, and turn **Notify When Run** off if it's shown.
-   - If you see a **Confirm Before Run** or **Ask Before Running** switch instead, turn it
-     **off** (tap **Don't Ask** if asked).
-7. Tap **Next**, then **New Blank Automation**.
+**3. Get Contents of URL.** Search `get contents` → tap it. Tap the URL and type
+`http://sunrise.local/plan?first=` (no spaces). With the cursor straight after the `=`, tap
+**Calendar Events** in the bar above the keyboard to insert it. Then tap that new **Calendar
+Events** bubble:
+- choose **Start Date**;
+- **Date Format** → **Custom**, Format String `HHmm` (capital HH, small mm);
+  **Time Format** → **None** if it's shown.
 
-You're now in the action editor. To add each action below: tap **Add Action** (or the
-**Search Actions** bar at the bottom), type the action's name, and tap it. New actions go to the
-bottom of the list. If one lands in the wrong place, press and hold it and drag it.
+**4. Show Notification.** Search `notification` → tap **Show Notification** → tap its text →
+choose **Contents of URL**.
 
-### Part 2: work out "tomorrow 04:00 to midnight"
+**5. Test it now.** Tap **▶** (bottom right) and allow everything it asks:
+- **Calendar:** **Allow Full Access**;
+- **Local Network:** **Allow**;
+- **sunrise.local:** **Always Allow**.
 
-8. **Adjust Date**
-   - Tap the blue word **Add** and choose **Get Start of Day**.
-   - Tap the **Date** slot and choose **Current Date**.
-   - It should read *Get Start of Day of Current Date* (today, 00:00).
-9. **Adjust Date** (a second one)
-   - Leave it on **Add**. Tap **0** and type **28**. Tap the unit and choose **hours**.
-   - The date slot should already say **Adjusted Date**. If not, tap it and choose
-     **Adjusted Date**.
-   - It reads *Add 28 hours to Adjusted Date* (tomorrow, 04:00).
-10. **Set Variable**
-    - Tap **Variable Name** and type `From`.
-    - Input should already be **Adjusted Date**.
-11. **Adjust Date** (a third one)
-    - **Add**, **20**, **hours**.
-    - Tap the date slot and choose the variable **From**.
-    - It reads *Add 20 hours to From* (tomorrow, midnight).
-12. **Set Variable**: name it `To`. Input: **Adjusted Date**.
+You should get a notification like *"Mon 16 Nov: wake-up 08:30 (usual weekday time)"*.
+To check it reads events: add a 07:30 event tomorrow and tap ▶ again. On a weekday it should say
+*wake-up 06:30*. Then delete the event and tap ▶ once more.
 
-### Part 3: find tomorrow's first event
-
-13. **Find Calendar Events**
-    - Tap the existing filter's condition (it says something like **is in the next**) and
-      choose **is between**.
-    - Tap the first date, choose **Select Variable**, then tap **From**. Tap the second date and
-      choose **To**.
-    - Tap **Add Filter**. Tap the new filter's first word and choose **Is All Day**. Set it so
-      all-day events are **excluded**: it may read **Is Not All Day**, or show a switch you turn
-      off.
-    - Tap **Sort by** and choose **Start Date**. Set **Order** to **Oldest First**.
-    - Turn **Limit** on and set it to **1** (*Get 1 Calendar Event*).
-    - Optional: **Add Filter** → **Calendar** → your own calendar(s), so shared or subscribed
-      calendars can't wake you early.
-
-### Part 4: turn the event into a time
-
-14. **If**
-    - Shortcuts adds three pieces: **If**, **Otherwise** and **End If**.
-    - Tap **Input** (or **Condition**) and choose **Calendar Events**. Set the condition to
-      **has any value**.
-15. **Get Details of Calendar Events**: drag it **between If and Otherwise**.
-    - Tap **Detail** and choose **Start Date**. The input should be **Calendar Events**.
-16. **Format Date**: drag it **under step 15**, still above Otherwise.
-    - The input should be **Start Date**.
-    - Tap the date format (or the **›** arrow / **Show More**) and choose **Custom**.
-    - In **Format String**, type `HHmm` (capital HH, lowercase mm). That gives e.g. `0915`.
-17. **Text**: drag it **between Otherwise and End If**, then type `none`.
-
-Check the If block now reads, top to bottom:
-*If Calendar Events has any value → Get Start Date → Format Date → Otherwise → Text "none"
-→ End If*.
-
-### Part 5: send it to the Pico
-
-18. **Get Contents of URL**: it must sit **below End If**.
-    - Tap **URL** and type: `http://sunrise.local/plan?first=`
-    - Straight after the `=`, insert the variable **If Result**: tap the variables bar above the
-      keyboard, or **Select Variable** → **If Result**.
-    - It reads `http://sunrise.local/plan?first=[If Result]`, all on one line, with no spaces.
-19. **Show Notification**: tap its text and choose the variable **Contents of URL**.
-    - Each night you'll get e.g. *"Mon 16 Nov: wake-up 08:00 (60 min before 09:00 event)"*.
-20. Tap **Done** (top right). On some versions, tap **Next**, then **Done**.
-
-### Part 6: run it once by hand (important)
-
-An automation that runs at 23:00 can't answer permission questions, so answer them now.
-
-21. In the **Automation** tab, tap the new automation, then the **▶** play button (bottom
-    right).
-22. Allow every prompt:
-    - **Calendar:** choose **Allow Full Access**. "Add events only" isn't enough.
-    - **Local Network:** **Allow**.
-    - **"Allow Shortcuts to connect to sunrise.local?"** (or similar): **Always Allow**.
-23. A notification should appear with tomorrow's wake-up. Open http://sunrise.local: the top card
-    should show the same, and no longer say "no calendar info yet".
+Known limit: an event starting tonight between 23:00 and midnight hides tomorrow morning's
+first event (rare).
 
 ### If something's wrong
 
 | What you see | Fix |
 |---|---|
-| "Could not connect to the server" | Phone on the same Wi-Fi? Settings → Privacy & Security → Local Network → **Shortcuts** on. Still failing: in step 18, use `http://192.168.0.118/plan?first=` (that IP can change) |
-| The Pico says "Bad value" | Step 16's Format String must be exactly `HHmm`, and step 18's URL must have no spaces |
-| Notification shows the wrong event | Check step 13: **is between From and To**, all-day events excluded, sorted **Oldest First**, limit **1** |
-| It never runs at night | Automation tab → tap it → **Enable This Automation** on, and Run Immediately chosen (or the confirm switch off) |
-| Wrong wake-up time | Change the rules on http://sunrise.local (not in the Shortcut) |
-
-To check the timing logic without waiting for tomorrow, add an event at 07:30 tomorrow and run
-the automation again. On a weekday the notification should say *wake-up 06:30*. Delete the event
-and run it once more.
+| "Could not connect to the server" | Same Wi-Fi? Settings → Privacy & Security → Local Network → **Shortcuts** on. Or use `http://192.168.0.118/plan?first=` (that IP can change) |
+| "Bad value: …" | The bubble in step 3 must be **Start Date** with Custom format `HHmm`; the URL must have no spaces |
+| Notification shows the wrong event | Step 2: all-day events left out, sorted **Oldest First**, limit **1** |
+| It never runs at night | Tap **›** next to 23:00: Daily, and running without asking |
+| Wrong wake-up time | Change the rules on http://sunrise.local, not in the Shortcut |
 
 ## Putting the Pico back on its own power
 
