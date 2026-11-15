@@ -12,6 +12,7 @@ import os
 import sys
 import tempfile
 import time as real_time
+import traceback
 import types
 import unittest
 from pathlib import Path
@@ -36,10 +37,16 @@ class FakeTime:
         return calendar.timegm(tuple(tup[:6]))
 
     def sleep(self, s):
-        pass
+        self.slept = s
 
     def sleep_ms(self, ms):
         pass
+
+    def ticks_ms(self):
+        return int(self.now * 1000)
+
+    def ticks_diff(self, a, b):
+        return a - b
 
 
 class FakeBulb:
@@ -60,31 +67,59 @@ class FakeBulb:
     def get_light(self):
         if not self.answers:
             return None
-        return {"state": self.state, "dimming": self.dimming, "temp": self.temp}
+        pilot = {"state": self.state, "dimming": self.dimming, "temp": self.temp}
+        if getattr(self, "scene", 0):
+            pilot["sceneId"] = self.scene
+        return pilot
+
+    def restore(self, params):
+        if not self.answers:
+            return False
+        self.state, self.dimming = params["state"], params.get("dimming", self.dimming)
+        self.scene = params.get("sceneId", 0)
+        self.temp = params.get("temp", self.temp)
+        self.sets.append(("restore", params))
+        return True
 
 
-def load_main():
+def load_main(clock):
     for name in ("network", "ntptime", "rp2", "urequests", "machine"):
         sys.modules[name] = mock.MagicMock()
-    sys.modules["config"] = types.SimpleNamespace(BAUD=9600, UART_TX_PIN=0, UART_RX_PIN=1)
+    sys.modules["config"] = types.SimpleNamespace(
+        BAUD=9600, UART_TX_PIN=0, UART_RX_PIN=1, WIFI_SSID="wifi", WIFI_PASSWORD="pw",
+        BRIEF_URL="https://example.com/brief.txt", GITHUB_TOKEN="token", GITHUB_REPO="me/repo",
+        TRIGGER_HOUR=7, TRIGGER_MINUTE=40, PRINT_HOUR=8, PRINT_MINUTE=0, GIVE_UP_HOUR=10)
     src = (Path(__file__).parent / "main.py").read_text().rstrip()
-    assert src.endswith("main()")
+    assert src.endswith("\nrun()")
     ns = {"__name__": "main_under_test"}
-    exec(compile(src[:-len("main()")], "main.py", "exec"), ns)
+    with mock.patch.dict(sys.modules, {"time": clock}):
+        exec(compile(src[:-len("run()")], "main.py", "exec"), ns)
+    # MicroPython's sys.print_exception, done with CPython's traceback module
+    ns["sys"] = types.SimpleNamespace(
+        print_exception=lambda e, f: traceback.print_exception(type(e), e, e.__traceback__, file=f))
     return ns
+
+
+class FakeResponse:
+    def __init__(self, status_code, text=""):
+        self.status_code, self.text = status_code, text
+
+    def close(self):
+        pass
 
 
 class LampTest(unittest.TestCase):
     def setUp(self):
-        self.m = m = load_main()
         self.clock = FakeTime()
-        m["time"] = self.clock
+        self.m = m = load_main(self.clock)
         self.bulb = FakeBulb()
         m["set_light"] = self.bulb.set_light
         m["get_light"] = self.bulb.get_light
+        m["restore_light"] = self.bulb.restore
         tmp = tempfile.mkdtemp()
-        m["STATE_FILE"] = os.path.join(tmp, "state.json")
-        m["SETTINGS_FILE"] = os.path.join(tmp, "settings.json")
+        for key, name in (("STATE_FILE", "state.json"), ("SETTINGS_FILE", "settings.json"),
+                          ("STATUS_FILE", "status.json"), ("LAST_FILE", "last_printed.txt")):
+            m[key] = os.path.join(tmp, name)
 
     def at(self, t):
         self.clock.now = t
@@ -314,6 +349,24 @@ class LampTest(unittest.TestCase):
         self.run_until(self.clock.now + 60)
         self.assertEqual(self.bulb.sets[-1], (False,))
 
+    def test_test_sunrise_puts_a_lamp_that_was_on_back_as_it_was(self):
+        self.at(utc(2026, 11, 15, 19, 37))
+        self.bulb.state, self.bulb.dimming, self.bulb.scene = True, 100, 12   # Daylight scene
+        self.get("/test")
+        self.run_until(self.clock.now + 60)
+        self.assertEqual(self.bulb.sets[-1], (True, 100, 4000))           # end of the test
+        self.run_until(self.clock.now + 61)
+        self.assertEqual(self.bulb.sets[-1], ("restore", {"state": True, "dimming": 100, "sceneId": 12}))
+        self.assertEqual(self.m["last_event"]("lamp")[3], "put back as it was before the test")
+        self.assertIsNone(self.m["restore_to"])
+
+    def test_test_sunrise_restores_warm_white_too(self):
+        self.at(utc(2026, 11, 15, 19, 37))
+        self.bulb.state, self.bulb.dimming, self.bulb.temp = True, 40, 2700
+        self.get("/test")
+        self.run_until(self.clock.now + 121)
+        self.assertEqual(self.bulb.sets[-1], ("restore", {"state": True, "dimming": 40, "temp": 2700}))
+
     def test_off_button_stops_morning_sunrise(self):
         self.at(utc(2026, 11, 16, 8, 0))
         self.run_until(utc(2026, 11, 16, 8, 10))
@@ -321,6 +374,97 @@ class LampTest(unittest.TestCase):
         self.run_until(utc(2026, 11, 16, 8, 40))
         self.assertEqual(self.bulb.sets[-1], (False,))
         self.assertEqual(self.m["done"], [2026, 11, 16])
+
+    # --- status log and printer messages ---
+
+    def test_log_merges_repeats_keeps_the_newest_and_survives_restart(self):
+        note = self.m["note"]
+        self.at(utc(2026, 11, 16, 7, 40))
+        note("wifi", False, "couldn't connect")
+        self.at(utc(2026, 11, 16, 7, 41))
+        note("wifi", False, "couldn't connect")
+        log = self.m["status"]["log"]
+        self.assertEqual(len(log), 1)
+        self.assertEqual((log[0][0], log[0][4]), (utc(2026, 11, 16, 7, 41), 2))  # newest time, x2
+        for i in range(30):
+            note("lamp", True, "event %d" % i)
+        self.assertEqual(len(log), 25)
+        self.assertEqual(log[-1][3], "event 29")
+        saved = [e[:] for e in log]
+        self.m["status"]["log"] = []
+        self.m["load_status"]()
+        self.assertEqual(self.m["status"]["log"][0][3], saved[0][3])
+
+    def test_printer_summary_through_the_morning(self):
+        summary = self.m["printer_summary"]
+        self.at(utc(2026, 11, 16, 6, 0))   # Monday, GMT
+        self.assertEqual(summary(self.clock.now)[:2], ("Next brief: built at 07:40, printed at 08:00", True))
+        self.at(utc(2026, 11, 16, 7, 50))
+        self.assertEqual(summary(self.clock.now)[:2], ("Building today's brief, prints at 08:00", True))
+        self.at(utc(2026, 11, 16, 7, 40))
+        self.m["note"]("build", False, "GitHub refused (HTTP 401) Bad credentials")
+        self.at(utc(2026, 11, 16, 9, 0))
+        head, ok, lines = summary(self.clock.now)
+        self.assertEqual((head, ok), ("Today's brief hasn't printed yet", False))
+        self.assertIn("Last problem: 07:40, build: GitHub refused (HTTP 401) Bad credentials", lines)
+        self.at(utc(2026, 11, 16, 9, 5))
+        self.m["note"]("print", True, "sent to the printer")
+        self.m["write_last"]("2026-11-16")
+        head, ok, lines = summary(self.clock.now)
+        self.assertEqual((head, ok), ("Today's brief printed at 09:05", True))
+        self.assertIn("Print: 09:05, sent to the printer", lines)
+
+    def test_github_refusal_is_explained(self):
+        self.at(utc(2026, 11, 16, 7, 40))
+        urequests = self.m["urequests"]
+        urequests.post.return_value = FakeResponse(401, '{"message": "Bad credentials"}')
+        self.assertFalse(self.m["trigger_brief"]())
+        self.assertEqual(self.m["last_event"]("build")[3], "GitHub refused (HTTP 401) Bad credentials")
+        urequests.post.side_effect = OSError(-2)
+        self.m["trigger_brief"]()
+        self.assertEqual(self.m["last_event"]("build")[3], "couldn't reach GitHub: -2")
+        urequests.post.side_effect = None
+        urequests.post.return_value = FakeResponse(204)
+        self.assertTrue(self.m["trigger_brief"]())
+        self.assertEqual(self.m["last_event"]("build")[2:4], [True, "started on GitHub"])
+
+    def test_download_failure_is_explained(self):
+        self.m["urequests"].get.return_value = FakeResponse(404, "Not Found")
+        self.assertIsNone(self.m["fetch_brief"]())
+        self.assertEqual(self.m["last_event"]("download")[3], "GitHub answered HTTP 404")
+
+    def test_page_and_status_show_the_printer(self):
+        self.at(utc(2026, 11, 16, 9, 0))
+        self.m["note"]("download", False, "failed: <odd> & error")
+        body = self.get("/")[2]
+        self.assertIn('<h2>Printer</h2><div class="card bad"><b>Today\'s brief hasn\'t printed yet</b>', body)
+        self.assertIn("failed: &lt;odd&gt; &amp; error", body)
+        self.assertNotIn("<odd>", body)
+        text = self.get("/status")[2]
+        self.assertIn("Printer: Today's brief hasn't printed yet", text)
+
+    def test_crash_is_saved_and_the_pico_restarts_with_growing_waits(self):
+        self.at(utc(2026, 11, 16, 7, 41))
+        def broken_main():
+            raise RuntimeError("boom")
+        self.m["main"] = broken_main
+        machine = self.m["machine"]
+        self.m["run"]()
+        self.assertTrue(machine.reset.called)
+        self.assertEqual(self.clock.slept, 30)
+        crash = self.m["status"]["crash"]
+        self.assertIn("RuntimeError: boom", crash[1])
+        self.assertEqual(self.m["last_event"]("crash")[3], "RuntimeError: boom (restarting in 30 s)")
+        self.m["run"]()                    # crashes again after the restart
+        self.assertEqual(self.clock.slept, 60)
+        self.assertIn("Last crash, 07:41:", self.get("/")[2])
+
+    def test_ctrl_c_still_stops_it(self):
+        def interrupted():
+            raise KeyboardInterrupt
+        self.m["main"] = interrupted
+        with self.assertRaises(KeyboardInterrupt):
+            self.m["run"]()
 
     def test_url_decoding(self):
         self.assertEqual(self.m["parse_path"]("/save?weekday=08%3A30&lead=60&x"),
