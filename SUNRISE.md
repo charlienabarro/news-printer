@@ -116,8 +116,10 @@ Siri can run any shortcut by saying its name, from a locked iPhone, an Apple Wat
 The WiZ app adds its own actions to Shortcuts (Power Toggle, Brightness Level, Play Scene and
 more), so no Pico changes are needed.
 
-1. **Settings → Siri** (or **Apple Intelligence & Siri**): turn on **Allow Siri When Locked**,
-   and set **Talk to Siri** to "Siri" or "Hey Siri".
+1. **Settings → Face ID & Passcode** → enter your passcode → scroll to **Allow Access When
+   Locked** → turn on **Siri**. (On iOS 26 the same switch is also on the main **Settings →
+   Siri** page as **Allow Siri When Locked**. It isn't on the Accessibility → Siri page.)
+   Make sure "Siri" or "Hey Siri" is turned on under **Settings → Siri**.
 2. **Shortcuts** → **Shortcuts** tab → **+** → search `WiZ` → pick **Power Toggle** → choose
    your lamp.
    - If it lets you pick on or off, make two shortcuts: one set to on, one set to off.
