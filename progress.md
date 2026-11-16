@@ -42,6 +42,16 @@
 
 ## Log (newest first)
 
+### 16 Nov 2026
+- First real wake-up was harsh: 10% white at the start felt bright and the 100% 4000K finish
+  was "blinding and piercing" (Charlie).
+- New sunrise: deep red at the bulb's minimum brightness → orange → amber → warm white, ending
+  at 70% / 2700K. Brightness rises 1% at a time, slowest at the start. The bulb's minimum is read
+  with `getModelConfig` (`minDimLevel`, as pywizlight does; 10% if not reported).
+- New settings: brightness and warmth at wake-up. 37 tests pass.
+- Not yet on the Pico: Charlie was away from home; needs a USB upload, then a Test sunrise to
+  judge the colours by eye.
+
 ### 15 Nov 2026 (evening)
 - Added a status log shown on http://sunrise.local: a Printer card (build, download, print,
   last problem) and the last 25 events, saved in `status.json` on the Pico. Errors from Wi-Fi,

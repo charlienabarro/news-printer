@@ -72,13 +72,13 @@ class FakeBulb:
             pilot["sceneId"] = self.scene
         return pilot
 
-    def restore(self, params):
+    def set_pilot(self, params):
         if not self.answers:
             return False
-        self.state, self.dimming = params["state"], params.get("dimming", self.dimming)
+        self.state, self.dimming = params.get("state", True), params.get("dimming", self.dimming)
         self.scene = params.get("sceneId", 0)
         self.temp = params.get("temp", self.temp)
-        self.sets.append(("restore", params))
+        self.sets.append(dict(params))
         return True
 
 
@@ -115,7 +115,8 @@ class LampTest(unittest.TestCase):
         self.bulb = FakeBulb()
         m["set_light"] = self.bulb.set_light
         m["get_light"] = self.bulb.get_light
-        m["restore_light"] = self.bulb.restore
+        m["set_pilot"] = self.bulb.set_pilot
+        m["min_dim"] = 10                      # the bulb's lowest brightness (asked from the bulb on the Pico)
         tmp = tempfile.mkdtemp()
         for key, name in (("STATE_FILE", "state.json"), ("SETTINGS_FILE", "settings.json"),
                           ("STATUS_FILE", "status.json"), ("LAST_FILE", "last_printed.txt")):
@@ -192,14 +193,30 @@ class LampTest(unittest.TestCase):
 
     # --- ramp ---
 
-    def test_ramp_levels(self):
-        level = self.m["ramp_level"]
-        end = utc(2026, 11, 16, 8, 30)
-        self.assertEqual(level(end - 1800, end, 1800), (10, 2200))   # start
-        self.assertEqual(level(end - 900, end, 1800), (55, 3100))    # halfway: 10+45, 2200+900
-        self.assertEqual(level(end, end, 1800), (100, 4000))         # end
-        self.assertEqual(level(end - 3600, end, 1800), (10, 2200))   # before start
-        self.assertEqual(level(end + 60, end, 1800), (100, 4000))    # after end
+    def test_sunrise_goes_red_orange_amber_then_warm_white(self):
+        p = self.m["sunrise_params"]
+        self.assertEqual(p(0), {"r": 255, "g": 20, "b": 0, "dimming": 10})        # deep red, dimmest
+        self.assertEqual(p(0.175), {"r": 255, "g": 55, "b": 0, "dimming": 12})    # 20+70/2, 10+5/2
+        self.assertEqual(p(0.35), {"r": 255, "g": 90, "b": 0, "dimming": 15})     # orange
+        self.assertEqual(p(0.6), {"temp": 2200, "dimming": 30})                   # turns white
+        self.assertEqual(p(0.8), {"temp": 2450, "dimming": 50})                   # 2200+500/2, 30+40/2
+        self.assertEqual(p(1), {"temp": 2700, "dimming": 70})                     # wake-up level
+        self.assertEqual(p(-1), p(0))
+        self.assertEqual(p(2), p(1))
+        self.assertEqual(p(0, low=1)["dimming"], 1)   # bulbs that go down to 1% start at 1%
+
+    def test_brightness_only_rises_one_percent_at_a_time(self):
+        p = self.m["sunrise_params"]
+        dims = [p(i / 1800, low=1)["dimming"] for i in range(1801)]
+        steps = [b - a for a, b in zip(dims, dims[1:])]
+        self.assertEqual((min(steps), max(steps)), (0, 1))
+        self.assertEqual((dims[0], dims[-1]), (1, 70))
+
+    def test_wake_up_brightness_and_warmth_are_settings(self):
+        self.m["apply_settings"]({"end_bright": "40", "end_temp": "3000"})
+        self.assertEqual(self.m["sunrise_params"](1), {"temp": 3000, "dimming": 40})
+        self.m["apply_settings"]({"end_bright": "5", "end_temp": "1000"})       # clamped to limits
+        self.assertEqual(self.m["sunrise_params"](1), {"temp": 2200, "dimming": 10})
 
     # --- web commands ---
 
@@ -291,12 +308,13 @@ class LampTest(unittest.TestCase):
         self.run_until(utc(2026, 11, 16, 7, 59) + 59)
         self.assertEqual(self.bulb.sets, [])             # nothing before 08:00
         self.run_until(utc(2026, 11, 16, 8, 0))
-        self.assertEqual(self.bulb.sets[-1], (True, 10, 2200))
-        self.run_until(utc(2026, 11, 16, 8, 15))
-        self.assertEqual(self.bulb.sets[-1], (True, 55, 3100))
+        self.assertEqual(self.bulb.sets[-1], {"state": True, "r": 255, "g": 20, "b": 0, "dimming": 10})
+        self.run_until(utc(2026, 11, 16, 8, 18))         # 60% of the way: turns warm white
+        self.assertEqual(self.bulb.sets[-1], {"state": True, "temp": 2200, "dimming": 30})
         self.run_until(utc(2026, 11, 16, 8, 30))
-        self.assertEqual(self.bulb.sets[-1], (True, 100, 4000))
-        self.assertEqual(len(self.bulb.sets), 91)        # every level from 10% to 100%
+        self.assertEqual(self.bulb.sets[-1], {"state": True, "temp": 2700, "dimming": 70})
+        dims = [s["dimming"] for s in self.bulb.sets]
+        self.assertEqual(max(b - a for a, b in zip(dims, dims[1:])), 1)   # never more than 1% a step
         self.assertEqual(self.m["done"], [2026, 11, 16])
         self.assertEqual(self.m["off_at"], utc(2026, 11, 16, 10, 0))  # 08:30 + 90 min
         self.run_until(utc(2026, 11, 16, 10, 0))
@@ -307,7 +325,8 @@ class LampTest(unittest.TestCase):
     def test_reboot_mid_sunrise_picks_up_where_it_should_be(self):
         self.at(utc(2026, 11, 16, 8, 20))  # boots at 08:20, 10 min before wake-up
         self.run_until(self.clock.now + 1)
-        self.assertEqual(self.bulb.sets[0][1], 70)   # 10 + 90 * 20/30
+        # 1 - 599/1800 = 0.6672 of the way: (0.6672-0.6)/0.4 = 0.168 into the white part
+        self.assertEqual(self.bulb.sets[0], {"state": True, "temp": 2280, "dimming": 36})
 
     def test_touching_the_lamp_stops_the_sunrise(self):
         self.at(utc(2026, 11, 16, 8, 0))
@@ -340,7 +359,7 @@ class LampTest(unittest.TestCase):
         self.at(utc(2026, 11, 15, 19, 0))
         self.get("/test")
         self.run_until(self.clock.now + 60)
-        self.assertEqual(self.bulb.sets[-1], (True, 100, 4000))
+        self.assertEqual(self.bulb.sets[-1], {"state": True, "temp": 2700, "dimming": 70})
         self.run_until(self.clock.now + 61)           # test turns itself off a minute later
         self.assertEqual(self.bulb.sets[-1], (False,))
         self.get("/test")
@@ -354,9 +373,9 @@ class LampTest(unittest.TestCase):
         self.bulb.state, self.bulb.dimming, self.bulb.scene = True, 100, 12   # Daylight scene
         self.get("/test")
         self.run_until(self.clock.now + 60)
-        self.assertEqual(self.bulb.sets[-1], (True, 100, 4000))           # end of the test
+        self.assertEqual(self.bulb.sets[-1], {"state": True, "temp": 2700, "dimming": 70})  # end of test
         self.run_until(self.clock.now + 61)
-        self.assertEqual(self.bulb.sets[-1], ("restore", {"state": True, "dimming": 100, "sceneId": 12}))
+        self.assertEqual(self.bulb.sets[-1], {"state": True, "dimming": 100, "sceneId": 12})
         self.assertEqual(self.m["last_event"]("lamp")[3], "put back as it was before the test")
         self.assertIsNone(self.m["restore_to"])
 
@@ -365,7 +384,7 @@ class LampTest(unittest.TestCase):
         self.bulb.state, self.bulb.dimming, self.bulb.temp = True, 40, 2700
         self.get("/test")
         self.run_until(self.clock.now + 121)
-        self.assertEqual(self.bulb.sets[-1], ("restore", {"state": True, "dimming": 40, "temp": 2700}))
+        self.assertEqual(self.bulb.sets[-1], {"state": True, "dimming": 40, "temp": 2700})
 
     def test_off_button_stops_morning_sunrise(self):
         self.at(utc(2026, 11, 16, 8, 0))

@@ -393,8 +393,11 @@ DEFAULTS = {
     "lead": 60,           # minutes between wake-up and the first event
     "ramp": 30,           # sunrise length in minutes
     "off_after": 90,      # minutes after wake-up to turn the bulb off (0 = leave it on)
+    "end_bright": 70,     # brightness (%) the sunrise finishes at
+    "end_temp": 2700,     # warmth (K) the sunrise finishes at: 2200 candle, 2700 warm, 4000 daylight
 }
-LIMITS = {"lead": (0, 240), "ramp": (1, 120), "off_after": (0, 720)}
+LIMITS = {"lead": (0, 240), "ramp": (1, 120), "off_after": (0, 720),
+          "end_bright": (10, 100), "end_temp": (2200, 6500)}
 
 settings = dict(DEFAULTS)
 plan = None       # [y, m, d, first event in minutes or None], sent by the Shortcut for that day
@@ -404,7 +407,8 @@ off_at = None     # when to turn the bulb off after a wake-up
 test_end = None   # end of a test sunrise
 restore_to = None # how the lamp was before a test, to put it back afterwards (None = off)
 sun_end = None    # end of the sunrise the bulb is following now
-sun_level = None  # last (dimming, temp) the bulb confirmed during that sunrise
+sun_level = None  # last settings the bulb confirmed during that sunrise
+min_dim = None    # the bulb's lowest brightness (%), asked once
 next_try = 0      # after the bulb fails to answer, wait until this time
 bulb_ip = None
 server = None
@@ -509,11 +513,35 @@ def describe(day):
     return "%s: wake-up %s (%s)" % (fmt_day(day), fmt_hm(mins), why)
 
 
-def ramp_level(now, end, length):
-    """(dimming %, colour temperature K) part-way through a sunrise that ends at `end`."""
-    f = min(1, max(0, 1 - (end - now) / length))
-    dimming = int(10 + 90 * f)
-    return dimming, 2200 + 20 * (dimming - 10)  # 10% at 2200K up to 100% at 4000K
+# The sunrise: deep red at the bulb's lowest brightness, slowly through orange and amber,
+# then warm white rising 1% at a time to the brightness and warmth set on the page.
+RED, ORANGE, AMBER = (255, 20, 0), (255, 90, 0), (255, 150, 30)
+
+
+def mix(a, b, t):
+    return a + (b - a) * t
+
+
+def sunrise_params(f, low=10):
+    """setPilot settings f of the way (0 to 1) through a sunrise. `low` = lowest brightness."""
+    f = min(1, max(0, f))
+    end = settings["end_bright"]
+    glow = max(low, min(15, end))   # brightness by the time it's orange
+    turn = max(glow, min(30, end))  # brightness when the colour turns to white
+    if f < 0.35:  # deep red to orange, barely brightening
+        t = f / 0.35
+        colour, dim = [mix(a, b, t) for a, b in zip(RED, ORANGE)], mix(low, glow, t)
+    elif f < 0.6:  # orange to amber
+        t = (f - 0.35) / 0.25
+        colour, dim = [mix(a, b, t) for a, b in zip(ORANGE, AMBER)], mix(glow, turn, t)
+    else:  # warm white, brightening to the wake-up level
+        t = (f - 0.6) / 0.4
+        return {"temp": int(mix(2200, settings["end_temp"], t) / 10) * 10, "dimming": int(mix(turn, end, t))}
+    return {"r": int(colour[0]), "g": int(colour[1]), "b": int(colour[2]), "dimming": int(dim)}
+
+
+def sunrise_at(now, end, length, low=10):
+    return sunrise_params(1 - (end - now) / length, low)
 
 
 # --- talking to the bulb (UDP JSON on port 38899) ---
@@ -607,9 +635,23 @@ def restore_params(pilot):
     return params
 
 
-def restore_light(params):
+def set_pilot(params):
     reply = wiz("setPilot", params)
     return bool(reply and reply.get("result", {}).get("success"))
+
+
+def min_dimming():
+    """The bulb's lowest brightness. Newer WiZ firmware reports it (some go down to 1%)."""
+    global min_dim
+    if min_dim is None:
+        reply = wiz("getModelConfig")
+        if reply is None:
+            return 10  # no answer: assume the usual 10% and ask again next time
+        try:
+            min_dim = min(10, max(1, int(reply.get("result", {}).get("minDimLevel", 10))))
+        except (TypeError, ValueError):
+            min_dim = 10
+    return min_dim
 
 
 def get_light():
@@ -627,14 +669,17 @@ def follow_sunrise(now, end, length):
     if sun_end != end:
         sun_end, sun_level = end, None
         note("lamp", True, "sunrise started")
-    level = ramp_level(now, end, length)
+    level = sunrise_at(now, end, length, min_dimming())
     if level == sun_level:
         return "ok"
     if sun_level is not None:
+        last = sun_level["dimming"]
         pilot = get_light()
-        if pilot and (not pilot.get("state") or abs(pilot.get("dimming", sun_level[0]) - sun_level[0]) > 2):
+        if pilot and (not pilot.get("state") or abs(pilot.get("dimming", last) - last) > 2):
             return "stopped"
-    if not set_light(True, level[0], level[1]):
+    params = dict(level)
+    params["state"] = True
+    if not set_pilot(params):
         return "fail"
     sun_level = level
     return "ok"
@@ -678,8 +723,8 @@ def tick_lamp(now):
             next_try = now + 10
             return
         # Only touch it if nobody has changed it since the sunrise finished
-        if pilot and pilot.get("state") and pilot.get("dimming") == 100:
-            ok = restore_light(restore_to) if restore_to else set_light(False)
+        if pilot and pilot.get("state") and pilot.get("dimming") == settings["end_bright"]:
+            ok = set_pilot(restore_to) if restore_to else set_light(False)
             if not ok and now < off_at + LATE_GRACE:
                 next_try = now + 10
                 return
@@ -770,6 +815,9 @@ pre{font-size:.75em;white-space:pre-wrap;background:#fff;padding:.5em;border-rad
 <label>Weekends: only for events before <input type=time name=weekend value=%s></label>
 <label>Sunrise length (minutes) <input type=number name=ramp min=1 max=120 value=%d></label>
 <label>Turn off after wake-up (minutes, 0 = never) <input type=number name=off_after min=0 max=720 value=%d></label>
+<label>Brightness at wake-up (%%) <input type=number name=end_bright min=10 max=100 value=%d></label>
+<label>Warmth at wake-up (K) <input type=number name=end_temp min=2200 max=6500 step=100 value=%d></label>
+<small>Warmth: 2200 candlelight, 2700 warm white, 4000 daylight. The sunrise starts deep red.</small>
 <button>Save</button></form>
 <h2>Lamp</h2>
 <a class=b href=/test>Test sunrise (1 min)</a><a class=b href=/off>Turn off</a>
@@ -835,7 +883,7 @@ def status_lines(now):
     if test_end is not None:
         why = "Test sunrise running"
     elif t is not None and now >= t - settings["ramp"] * 60:
-        why = "Sunrise running: %d%%" % ramp_level(now, t, settings["ramp"] * 60)[0]
+        why = "Sunrise running: %d%%" % sunrise_at(now, t, settings["ramp"] * 60, min_dim or 10)["dimming"]
     elif off_at is not None:
         why += "; lamp turns off at " + clock(off_at)
     return head, why
@@ -926,7 +974,7 @@ def route(path, now):
     if page == "/":
         s = settings
         return "200 OK", "text/html", PAGE % (status_lines(now) + (printer_html(now),
-            s["weekday"], s["lead"], s["weekend"], s["ramp"], s["off_after"]))
+            s["weekday"], s["lead"], s["weekend"], s["ramp"], s["off_after"], s["end_bright"], s["end_temp"]))
 
     return "404 Not Found", "text/plain", "Not found"
 

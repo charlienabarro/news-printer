@@ -1,8 +1,13 @@
 # Sunrise lamp
 
-The Pico W that prints the morning brief also runs a wake-up light. A Philips WiZ bulb fades from
-10% warm light (2200K) up to 100% daylight (4000K) over the 30 minutes before you wake up.
-90 minutes after the wake-up it turns itself off.
+The Pico W that prints the morning brief also runs a wake-up light. Over the 30 minutes before
+you wake up, a Philips WiZ bulb goes through a sunrise:
+- **0–10 min:** deep red at the bulb's dimmest, slowly turning orange.
+- **10–18 min:** orange to amber, brightening gently.
+- **18–30 min:** warm white, rising 1% at a time to 70% at 2700K (warm, not daylight).
+
+The finishing brightness and warmth are settings on the page. 90 minutes after the wake-up the
+lamp turns itself off.
 
 ## How the wake-up time is chosen
 
@@ -26,7 +31,8 @@ Share button → **Add to Home Screen**.
   **No wake-up** skips the next morning. **Back to normal** undoes either.
   One-offs survive the 23:00 Shortcut.
 - **Usual settings:** weekday time, minutes before an event, weekend cut-off, sunrise length,
-  auto-off. Tap **Save**. Changes apply straight away, including tomorrow's wake-up.
+  auto-off, and the brightness and warmth it finishes at (2200K candlelight, 2700K warm white,
+  4000K daylight). Tap **Save**. Changes apply straight away, including tomorrow's wake-up.
 - **Printer:** today's brief at a glance. It shows the last build, download and print, plus
   the last problem in plain words (e.g. *"07:40, build: GitHub refused (HTTP 401) Bad
   credentials"*). A green edge means all is well, red means today's brief hasn't printed
