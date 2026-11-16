@@ -42,6 +42,17 @@
 
 ## Log (newest first)
 
+### 16 Nov 2026 (afternoon)
+- Brief repeats: the Egypt train crash and Kenyan sect stories were printed on 12, 15 and 16 Nov
+  with near-identical text; a Verge TV deal ("all-time low of $39.99") was printed on 15 Nov.
+- Fix in `make_brief.py`: `history.json` (last 5 days of printed stories, seeded from git with
+  12/15/16 Nov) is shown to Gemini, which only brings a story back for a real new development
+  and gives just the new part; feed items older than 36 h dropped; narrow deals regex plus prompt
+  rules against reviews, guides and gossip; fewer stories rather than padding.
+- Tested: 6 unit tests (`test_make_brief.py`), live dry run (54 kept, 10 stale dropped), and one
+  real GitHub run at 15:05 UTC: no overlap with the 08:00 brief; Microsoft story came back only
+  as the new development; Business had 2 stories.
+
 ### 16 Nov 2026
 - First real wake-up was harsh: 10% white at the start felt bright and the 100% 4000K finish
   was "blinding and piercing" (Charlie).
