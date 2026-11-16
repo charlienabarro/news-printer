@@ -54,6 +54,15 @@ Use the printer's **TTL** pins, never RS232. Never power the Pico from USB and t
 The same Pico also runs a WiZ wake-up light, with a settings page at http://sunrise.local.
 Setup, the iPhone Shortcut and the settings are in [SUNRISE.md](SUNRISE.md).
 
+## No repeats, no filler
+
+- `history.json` keeps the stories printed over the last 5 days. Gemini sees them and only brings a
+  story back when there's a real new development, giving just the new part.
+- Feed items older than 36 hours are ignored (feeds keep old stories listed for days).
+- Shopping filler (price cuts, "all-time low", deals) is dropped before Gemini sees it, and Gemini is
+  told to skip reviews, buying guides and gossip. A section prints fewer stories rather than pad.
+- Tests: `python3 test_make_brief.py`. Preview without calling Gemini: `python make_brief.py --dry-run`.
+
 ## Changing the news
 
 Edit `FEEDS` in `make_brief.py`. Any RSS feed works.
