@@ -43,6 +43,8 @@
 ## Log (newest first)
 
 ### 16 Nov 2026 (evening)
+- Charlie is happy with the new wake-up sequence after the live test (18:06). Pico back on 5V,
+  online at 18:10 (first Wi-Fi join failed, retry connected).
 - Colour sunrise uploaded (Pico on USB at /dev/cu.usbmodem11301). Bulb reports minDimLevel 10,
   cctRange 2200-6500. Charlie found the RGB-to-white switch harsh (amber 25% to white 39% in the
   1-min test). Fixed: everything stays in r,g,b,c,w mode; the warm-white LED fades in with t*t
