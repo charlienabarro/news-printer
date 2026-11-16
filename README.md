@@ -44,8 +44,12 @@ Use the printer's **TTL** pins, never RS232. Never power the Pico from USB and t
 
 ## Behaviour
 
-- Checks every 10 minutes from 8am until today's brief is there.
-- If today's brief still isn't ready by 10am, it prints the latest one with a note.
+- Prints at your wake-up time each day (set on the sunrise lamp page, http://sunrise.local), or at
+  10:00 on days with no wake-up. 20 minutes before that it asks GitHub to build the brief.
+- Checks every 5 minutes until today's brief is there. If it still isn't ready 2 hours after the
+  print time, it prints the latest one with a note.
+- `TRIGGER_*`, `PRINT_*` and `GIVE_UP_HOUR` in `config.py` are no longer used for the schedule
+  (`PRINT_HOUR`/`PRINT_MINUTE` is only a fallback if the lamp settings fail).
 - Remembers what it printed, so a power cut won't cause a reprint.
 - Handles British Summer Time automatically.
 

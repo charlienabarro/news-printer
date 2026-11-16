@@ -2,9 +2,14 @@
 
 The Pico W that prints the morning brief also runs a wake-up light. Over the 30 minutes before
 you wake up, a Philips WiZ bulb goes through a sunrise:
-- **0–10 min:** deep red at the bulb's dimmest, slowly turning orange.
+- **0–10 min:** deep red at the bulb's dimmest (10%), slowly turning orange.
 - **10–18 min:** orange to amber, brightening gently.
-- **18–30 min:** warm white, rising 1% at a time to 70% at 2700K (warm, not daylight).
+- **18–30 min:** the amber fades out as the warm-white LED fades in, slowly at first, rising 1% at
+  a time to 70% warm white. It all stays in the bulb's colour mode, so there's no jump when the
+  white arrives.
+
+The news printer prints at the same time: your wake-up time. On days with no wake-up it prints at
+10:00 (a setting on the page).
 
 The finishing brightness and warmth are settings on the page. 90 minutes after the wake-up the
 lamp turns itself off.
@@ -31,8 +36,9 @@ Share button → **Add to Home Screen**.
   **No wake-up** skips the next morning. **Back to normal** undoes either.
   One-offs survive the 23:00 Shortcut.
 - **Usual settings:** weekday time, minutes before an event, weekend cut-off, sunrise length,
-  auto-off, and the brightness and warmth it finishes at (2200K candlelight, 2700K warm white,
-  4000K daylight). Tap **Save**. Changes apply straight away, including tomorrow's wake-up.
+  auto-off, the brightness and warmth it finishes at (2200K candlelight, 2700K warm white,
+  4000K daylight), and when to print the news on days with no wake-up. Tap **Save**. Changes
+  apply straight away, including tomorrow's wake-up.
 - **Printer:** today's brief at a glance. It shows the last build, download and print, plus
   the last problem in plain words (e.g. *"07:40, build: GitHub refused (HTTP 401) Bad
   credentials"*). A green edge means all is well, red means today's brief hasn't printed

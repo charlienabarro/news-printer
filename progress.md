@@ -42,6 +42,16 @@
 
 ## Log (newest first)
 
+### 16 Nov 2026 (evening)
+- Colour sunrise uploaded (Pico on USB at /dev/cu.usbmodem11301). Bulb reports minDimLevel 10,
+  cctRange 2200-6500. Charlie found the RGB-to-white switch harsh (amber 25% to white 39% in the
+  1-min test). Fixed: everything stays in r,g,b,c,w mode; the warm-white LED fades in with t*t
+  while amber fades out. Bulb accepted and reported the mixed values exactly. Re-tested live:
+  smooth, then restored Charlie's scene.
+- Printer now prints at the wake-up time (build 20 min before, give up 2 h after); 10:00 on days
+  with no wake-up (page setting `print_fallback`). 41 tests pass.
+
+
 ### 16 Nov 2026 (afternoon)
 - Brief repeats: the Egypt train crash and Kenyan sect stories were printed on 12, 15 and 16 Nov
   with near-identical text; a Verge TV deal ("all-time low of $39.99") was printed on 15 Nov.

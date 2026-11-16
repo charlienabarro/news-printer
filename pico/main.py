@@ -1,9 +1,10 @@
 """Morning brief printer for a Raspberry Pi Pico W.
 
-Joins WiFi and syncs the clock. At TRIGGER_HOUR:TRIGGER_MINUTE it asks GitHub
-to build a fresh brief (GitHub's own scheduler runs hours late, so the Pico
-starts the job itself). From PRINT_HOUR it downloads brief.txt and prints it
-on a 58mm ESC/POS thermal printer over UART.
+Joins WiFi and syncs the clock. The brief prints at your wake-up time (the
+same time the sunrise lamp finishes), or at the "no wake-up" print time set on
+the lamp's page. 20 minutes before that it asks GitHub to build a fresh brief
+(GitHub's own scheduler runs hours late, so the Pico starts the job itself),
+then downloads brief.txt and prints it on a 58mm ESC/POS thermal printer over UART.
 
 Press the BOOTSEL button at any time to reprint the latest brief.
 
@@ -334,18 +335,40 @@ def when(t, now):
     return hhmm if day == london_day(now) else fmt_day(day) + " " + hhmm
 
 
+BUILD_LEAD = 20       # minutes before the print time to ask GitHub to build the brief
+GIVE_UP_AFTER = 120   # minutes after the print time to print an older brief if today's isn't ready
+
+
+def print_time():
+    """Minutes after midnight (UK) to print today's brief: today's wake-up time, or the
+    "no wake-up" print time from the lamp settings. Uses config.PRINT_HOUR if anything fails."""
+    try:
+        mins = wake_for(london_day(time.time()))[0]
+        return mins if mins is not None else hm(settings["print_fallback"])
+    except Exception:
+        return config.PRINT_HOUR * 60 + config.PRINT_MINUTE
+
+
+def brief_schedule(t):
+    """(started, due, give_up) for the UK time tuple t: build from BUILD_LEAD minutes before
+    the print time, print from the print time, print an older brief after GIVE_UP_AFTER."""
+    at = print_time()
+    mins = t[3] * 60 + t[4]
+    return mins >= at - BUILD_LEAD, mins >= at, mins >= at + GIVE_UP_AFTER
+
+
 def printer_summary(now):
     """(headline, all well?, detail lines) about the printer, for the page and /status."""
     t = london_now()
-    hm_now = (t[3], t[4])
+    at = print_time()
+    started, due, _ = brief_schedule(t)
     if read_last() == today_str(t):
         p = last_event("print")
         head, ok = "Today's brief printed" + (" at " + when(p[0], now) if p else ""), True
-    elif hm_now < (config.TRIGGER_HOUR, config.TRIGGER_MINUTE):
-        head, ok = "Next brief: built at %02d:%02d, printed at %02d:%02d" % (
-            config.TRIGGER_HOUR, config.TRIGGER_MINUTE, config.PRINT_HOUR, config.PRINT_MINUTE), True
-    elif hm_now < (config.PRINT_HOUR, config.PRINT_MINUTE):
-        head, ok = "Building today's brief, prints at %02d:%02d" % (config.PRINT_HOUR, config.PRINT_MINUTE), True
+    elif not started:
+        head, ok = "Next brief: built at %s, printed at %s" % (fmt_hm(max(0, at - BUILD_LEAD)), fmt_hm(at)), True
+    elif not due:
+        head, ok = "Building today's brief, prints at %s" % fmt_hm(at), True
     else:
         head, ok = "Today's brief hasn't printed yet", False
     lines = []
@@ -395,6 +418,7 @@ DEFAULTS = {
     "off_after": 90,      # minutes after wake-up to turn the bulb off (0 = leave it on)
     "end_bright": 70,     # brightness (%) the sunrise finishes at
     "end_temp": 2700,     # warmth (K) the sunrise finishes at: 2200 candle, 2700 warm, 4000 daylight
+    "print_fallback": "10:00",  # print the news at this time on days with no wake-up
 }
 LIMITS = {"lead": (0, 240), "ramp": (1, 120), "off_after": (0, 720),
           "end_bright": (10, 100), "end_temp": (2200, 6500)}
@@ -514,7 +538,10 @@ def describe(day):
 
 
 # The sunrise: deep red at the bulb's lowest brightness, slowly through orange and amber,
-# then warm white rising 1% at a time to the brightness and warmth set on the page.
+# then the warm-white LED fades in (slowly at first) as the amber fades out, rising 1% at a
+# time to the brightness and warmth set on the page. Everything stays in the bulb's colour
+# mode (r, g, b plus cool-white c and warm-white w LEDs), so there is no jump when the
+# white arrives.
 RED, ORANGE, AMBER = (255, 20, 0), (255, 90, 0), (255, 150, 30)
 
 
@@ -522,22 +549,35 @@ def mix(a, b, t):
     return a + (b - a) * t
 
 
+def white_mix(kelvin):
+    """Approximate (r, g, b, c, w) LED levels for white of this colour temperature: the
+    warm-white LED, plus some cool-white above 2700K or a red/orange tint below it."""
+    if kelvin <= 2700:
+        t = (2700 - kelvin) / 500           # 0 at 2700K, 1 at 2200K
+        return (160 * t, 50 * t, 0, 0, 255)
+    t = min(1, (kelvin - 2700) / 3800)      # 0 at 2700K, 1 at 6500K
+    return (0, 0, 0, 255 * t, 255 * (1 - t))
+
+
 def sunrise_params(f, low=10):
     """setPilot settings f of the way (0 to 1) through a sunrise. `low` = lowest brightness."""
     f = min(1, max(0, f))
     end = settings["end_bright"]
     glow = max(low, min(15, end))   # brightness by the time it's orange
-    turn = max(glow, min(30, end))  # brightness when the colour turns to white
+    turn = max(glow, min(30, end))  # brightness when the white starts to come in
     if f < 0.35:  # deep red to orange, barely brightening
         t = f / 0.35
-        colour, dim = [mix(a, b, t) for a, b in zip(RED, ORANGE)], mix(low, glow, t)
+        colour, dim = [mix(a, b, t) for a, b in zip(RED, ORANGE)] + [0, 0], mix(low, glow, t)
     elif f < 0.6:  # orange to amber
         t = (f - 0.35) / 0.25
-        colour, dim = [mix(a, b, t) for a, b in zip(ORANGE, AMBER)], mix(glow, turn, t)
-    else:  # warm white, brightening to the wake-up level
+        colour, dim = [mix(a, b, t) for a, b in zip(ORANGE, AMBER)] + [0, 0], mix(glow, turn, t)
+    else:  # amber to warm white; t*t brings the white in slowly at first
         t = (f - 0.6) / 0.4
-        return {"temp": int(mix(2200, settings["end_temp"], t) / 10) * 10, "dimming": int(mix(turn, end, t))}
-    return {"r": int(colour[0]), "g": int(colour[1]), "b": int(colour[2]), "dimming": int(dim)}
+        white = white_mix(settings["end_temp"])
+        colour = [mix(a, b, t * t) for a, b in zip(AMBER + (0, 0), white)]
+        dim = mix(turn, end, t)
+    r, g, b, c, w = [int(x) for x in colour]
+    return {"r": r, "g": g, "b": b, "c": c, "w": w, "dimming": int(dim)}
 
 
 def sunrise_at(now, end, length, low=10):
@@ -818,6 +858,8 @@ pre{font-size:.75em;white-space:pre-wrap;background:#fff;padding:.5em;border-rad
 <label>Brightness at wake-up (%%) <input type=number name=end_bright min=10 max=100 value=%d></label>
 <label>Warmth at wake-up (K) <input type=number name=end_temp min=2200 max=6500 step=100 value=%d></label>
 <small>Warmth: 2200 candlelight, 2700 warm white, 4000 daylight. The sunrise starts deep red.</small>
+<label>Print the news on days with no wake-up at <input type=time name=print_fallback value=%s></label>
+<small>On other days the news prints at your wake-up time.</small>
 <button>Save</button></form>
 <h2>Lamp</h2>
 <a class=b href=/test>Test sunrise (1 min)</a><a class=b href=/off>Turn off</a>
@@ -974,7 +1016,8 @@ def route(path, now):
     if page == "/":
         s = settings
         return "200 OK", "text/html", PAGE % (status_lines(now) + (printer_html(now),
-            s["weekday"], s["lead"], s["weekend"], s["ramp"], s["off_after"], s["end_bright"], s["end_temp"]))
+            s["weekday"], s["lead"], s["weekend"], s["ramp"], s["off_after"], s["end_bright"], s["end_temp"],
+            s["print_fallback"]))
 
     return "404 Not Found", "text/plain", "Not found"
 
@@ -1085,9 +1128,8 @@ def main():
                 do_print(text, today)
             time.sleep(2)
 
-        hm = (now[3], now[4])
-        started = hm >= (config.TRIGGER_HOUR, config.TRIGGER_MINUTE)
-        due = hm >= (config.PRINT_HOUR, config.PRINT_MINUTE)
+        # The brief prints at today's wake-up time (or the "no wake-up" time on the lamp page)
+        started, due, give_up = brief_schedule(now)
 
         # From trigger time until today's brief is printed, check every 5 minutes
         if started and read_last() != today and time.time() - last_check > 300:
@@ -1103,7 +1145,7 @@ def main():
                 if trigger_brief():
                     last_trigger = time.time()
 
-            if due and text and (fresh or now[3] >= config.GIVE_UP_HOUR):
+            if due and text and (fresh or give_up):
                 do_print(text, today)
                 write_last(today)
             elif due:
