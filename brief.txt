@@ -1,111 +1,106 @@
 @DATE 2026-11-16
 # UK
-* Andy Burnham says Brexit has not
-* worked
-Prime Minister Andy Burnham
-stated that Brexit has not
-worked and announced he will
-sign a new deal with the EU at a
-summit this week to help raise
-GDP by 0.4%.
+* Boots to prescribe medical
+* cannabis online
+Boots has announced it will
+become the first UK high street
+pharmacy to offer an online
+medical cannabis prescribing
+service for eligible patients
+aged 25 and older.
 
-* UK blood services issue urgent
-* winter appeal
-UK blood services have appealed
-for 150,000 donations to help
-the NHS cope with surging winter
-demand, with certain reserves
-currently at half of required
-levels.
+* Russell Brand faces Ministry of
+* Justice inquiry
+The Ministry of Justice is
+investigating whether Russell
+Brand broke prison rules after
+his wife read out a message on
+their YouTube channel in which
+he claimed he is not guilty.
 
-* Lords report warns of UK
-* polycrisis threats
-An influential committee of
-peers warned that the government
-is complacent about catastrophic
-and fast-changing security risks
-to the UK, including cyber-
-attacks, sabotage and climate
-change.
+* Man charged after two die in
+* Leeds crash
+Leigh Ross, 39, has been charged
+with causing death by dangerous
+driving after a car being
+pursued by police collided with
+another vehicle, killing a
+22-year-old man and a 23-year-
+old.
 
 # WORLD
-* Paul Mackenzie jailed for 200
-* years
-Kenyan doomsday sect leader Paul
-Mackenzie was sentenced to 200
-years in prison for the murders
-of 190 children and one adult
-after followers were ordered to
-starve.
+* American basketball player
+* arrested in Nigeria
+Greene Da'monte Khiree, an
+American basketball player, has
+been arrested by Nigeria's
+National Drug Law Enforcement
+Agency at an airport for
+allegedly attempting to smuggle
+33.95kg of marijuana into the
+country.
 
-* Train collision in Egypt kills
-* seven
-At least seven people were
-killed and 125 injured when two
-trains collided in the al-Ayyat
-district of Giza province,
-roughly 50km south of Cairo.
+* Man sentenced to life for Dublin
+* stabbing
+A man who attempted to murder
+three children outside their
+school in Dublin, including
+stabbing one in the heart, has
+been sentenced to life in
+prison.
 
-* US asks Ukraine about Donbas and
-* NATO
-Volodymyr Zelenskyy said the US
-asked for the first time if
-Ukraine would withdraw from
-parts of the Donbas region in
-exchange for admission to NATO.
+* At least 17 killed in South
+* African shootings
+At least 17 people have been
+killed across two separate
+shootings in South Africa,
+according to local police.
 
 # TECH
-* Vulcan rocket fails and destroys
-* 40 satellites
-United Launch Alliance suffered
-its first mission failure in
-20-year history when its Vulcan
-rocket failed to deliver 40
-Amazon Leo satellites into
-orbit.
+* Amazon Zoox robotaxis launch on
+* Uber
+Uber users in Las Vegas can now
+be matched with Amazon-owned
+Zoox purpose-built,
+bidirectional robotaxis in a
+first for both companies.
 
-* Tor Project issues emergency DoS
-* fix
-The Tor Project released a
-rapid-response security fix for
-version 0.4.9-17 to defend its
-network against a sustained
-distributed denial-of-service
-attack.
+* Microsoft blames email outage on
+* software defect
+Microsoft stated that its recent
+monster email outage was caused
+by a software defect that was
+introduced during a July fix.
 
-* Microsoft restores all global
-* outage services
-Microsoft confirmed that all
-services have been fully
-restored following a global
-outage that severely impacted
-the NHS, police and schools
-across the UK.
+* Senator criticises Commerce
+* Secretary over Nvidia chips
+Washington Senator Maria
+Cantwell sent a letter to
+Commerce Secretary Howard
+Lutnick criticising the
+Department of Commerce for
+failing to enforce protections
+preventing Nvidia AI chips from
+reaching China.
 
 # BUSINESS
-* Elon Musk backs Nvidia CEO
-* Jensen Huang
-Elon Musk and over 165,000
-others signed an open letter
-calling for Nvidia to reinstate
-ousted co-founder and former CEO
-Jensen Huang following a scandal
-involving a suspected Chinese
-spy.
+* Gymshark in trademark battle
+* over gym name
+British sportswear firm Gymshark
+is attempting to obtain the
+rights to The Conditioning Club,
+threatening the future of a
+small Gloucestershire gym with
+the same name.
 
-* Thames Water creditors offer GBP
-* 75m tariff boost
-Thames Water creditors proposed
-a GBP 75m fund for vulnerable
-customers to win Prime Minister
-Andy Burnham's support for a
-private rescue package and avoid
-nationalisation.
-
-* FBI seizes $1.2bn in stolen
-* Binance crypto
-The FBI seized more than $1.2bn
-in cryptocurrency that was
-stolen from cryptocurrency
-exchange Binance during a hack
-last month.
+* Liberty Steel plant raises Royal
+* Navy concerns
+The Royal Navy is facing
+questions over whether three new
+warships will be built with
+British steel as its Scottish
+supplier, the Liberty Steel
+Dalzell plant in Motherwell,
+struggles to pay bills for an
+order of 34,000 tonnes of metal
+plate.
