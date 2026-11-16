@@ -1,94 +1,111 @@
-@DATE 2026-11-15
+@DATE 2026-11-16
 # UK
-* Trident submarine finishes
-* record patrol
-HMS Vengeance concluded a seven-
-month underwater deployment in
-Scotland, raising concerns about
-maintenance and crew impact.
+* Andy Burnham says Brexit has not
+* worked
+Prime Minister Andy Burnham
+stated that Brexit has not
+worked and announced he will
+sign a new deal with the EU at a
+summit this week to help raise
+GDP by 0.4%.
 
-* Andy Burnham pledges youth jobs
-* overhaul
-The prime minister promised a
-root-and-branch rethink of
-support and a benefits backstop
-to tackle the youth employment
-crisis.
+* UK blood services issue urgent
+* winter appeal
+UK blood services have appealed
+for 150,000 donations to help
+the NHS cope with surging winter
+demand, with certain reserves
+currently at half of required
+levels.
 
-* Poundland secures rescue talks
-* extension
-The discount chain received an
-extended deadline as its US
-owners released funds to restock
-stores with Yorkshire Tea and
-Pot Noodle.
+* Lords report warns of UK
+* polycrisis threats
+An influential committee of
+peers warned that the government
+is complacent about catastrophic
+and fast-changing security risks
+to the UK, including cyber-
+attacks, sabotage and climate
+change.
 
 # WORLD
-* Kenyan sect leader jailed for
-* 200 years
-Paul Mackenzie was convicted of
-murdering 190 children and one
-adult after ordering followers
-to starve themselves.
+* Paul Mackenzie jailed for 200
+* years
+Kenyan doomsday sect leader Paul
+Mackenzie was sentenced to 200
+years in prison for the murders
+of 190 children and one adult
+after followers were ordered to
+starve.
 
 * Train collision in Egypt kills
 * seven
-At least seven people died and
-125 were injured when two trains
-collided in al-Ayyat district in
-Giza province, Egypt.
+At least seven people were
+killed and 125 injured when two
+trains collided in the al-Ayyat
+district of Giza province,
+roughly 50km south of Cairo.
 
-* US asks about Ukraine Donbas
-* withdrawal
+* US asks Ukraine about Donbas and
+* NATO
 Volodymyr Zelenskyy said the US
-asked if Ukraine would give up
+asked for the first time if
+Ukraine would withdraw from
 parts of the Donbas region in
-exchange for NATO membership.
+exchange for admission to NATO.
 
 # TECH
-* Apple smart glasses planned for
-* June
-Bloomberg analyst Mark Gurman
-reported that Apple will
-announce its first model,
-lacking augmented reality
-features, at June's WWDC.
+* Vulcan rocket fails and destroys
+* 40 satellites
+United Launch Alliance suffered
+its first mission failure in
+20-year history when its Vulcan
+rocket failed to deliver 40
+Amazon Leo satellites into
+orbit.
 
-* SpaceX captures Starship with
-* tower
-SpaceX successfully executed its
-first chopstick catch of a
-Starship booster using its
-Mechazilla launch and catch
-tower in Texas.
+* Tor Project issues emergency DoS
+* fix
+The Tor Project released a
+rapid-response security fix for
+version 0.4.9-17 to defend its
+network against a sustained
+distributed denial-of-service
+attack.
 
-* LG B6E OLED TV heavily
-* discounted
-Best Buy slashed the price of
-LG's 55-inch B6E OLED TV by 50
-percent to an all-time low of
-$39.99 during a weekend event.
+* Microsoft restores all global
+* outage services
+Microsoft confirmed that all
+services have been fully
+restored following a global
+outage that severely impacted
+the NHS, police and schools
+across the UK.
 
 # BUSINESS
-* Thames Water creditors offer 75m
-* pounds
-Creditors established a 75m
-pound fund for vulnerable
-customers to win Andy Burnham's
-support and avert
-nationalisation of Thames Water.
+* Elon Musk backs Nvidia CEO
+* Jensen Huang
+Elon Musk and over 165,000
+others signed an open letter
+calling for Nvidia to reinstate
+ousted co-founder and former CEO
+Jensen Huang following a scandal
+involving a suspected Chinese
+spy.
 
-* Nvidia CEO Jensen Huang resigns
-Jensen Huang stepped down
-following corporate scandals
-involving allegations of
-international espionage and
-extramarital affairs.
+* Thames Water creditors offer GBP
+* 75m tariff boost
+Thames Water creditors proposed
+a GBP 75m fund for vulnerable
+customers to win Prime Minister
+Andy Burnham's support for a
+private rescue package and avoid
+nationalisation.
 
-* Chip app targets retail
-* investors
-British tech company Chip is
-offering retail investors shares
-in a first for the London Stock
-Exchange private securities
-market.
+* FBI seizes $1.2bn in stolen
+* Binance crypto
+The FBI seized more than $1.2bn
+in cryptocurrency that was
+stolen from cryptocurrency
+exchange Binance during a hack
+last month.
